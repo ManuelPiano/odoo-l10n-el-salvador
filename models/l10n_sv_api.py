@@ -17,7 +17,9 @@ import time
 import requests
 
 from odoo import models, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
+
+from .account_move import CONTINGENCIA_VERSION, DTE_VERSION_MAP, INVALIDACION_VERSION
 
 _logger = logging.getLogger(__name__)
 
@@ -28,21 +30,19 @@ ENDPOINTS = {
     'contingencia': '/seguridad/contingencia',
 }
 
-DTE_VERSION_V1_TYPES = ('01', '07', '08', '09', '11', '14', '15')
-DTE_VERSION_V3_TYPES = ('03', '04', '05', '06')
 
 DEFAULT_TIMEOUT = 60
 TOKEN_TTL_SECONDS = 55 * 60
 
 
-class L10nSvApi(models.Model):
+class L10nSvApi(models.AbstractModel):
     _name = 'l10n_sv.api'
     _description = 'Conector API Ministerio de Hacienda SV'
 
     @api.model
     def _get_config(self, company=None):
         company = company or self.env.company
-        return company.get_l10n_sv_api_config()
+        return company._get_l10n_sv_api_config()
 
     def _get_base_url(self, ambiente):
         if ambiente == '01':
@@ -77,7 +77,7 @@ class L10nSvApi(models.Model):
         ICP.set_param(self._param_name(company.id, 'token_expires_at'), '0')
 
     @api.model
-    def authenticate(self, company=None, force_refresh=False):
+    def _authenticate(self, company=None, force_refresh=False):
         """
         Obtiene (y cachea) un token JWT del MH.
 
@@ -131,7 +131,7 @@ class L10nSvApi(models.Model):
         company = company or self.env.company
         config = self._get_config(company)
         ambiente = ambiente or config['ambiente']
-        token = self.authenticate(company=company)
+        token = self._authenticate(company=company)
         if not token:
             raise UserError(_('No se pudo obtener un token válido del Ministerio de Hacienda. Verifique credenciales en Parámetros del sistema.'))
 
@@ -163,53 +163,53 @@ class L10nSvApi(models.Model):
         return payload
 
     @api.model
-    def get_dte_version(self, tipo_dte):
-        return 3 if tipo_dte in DTE_VERSION_V3_TYPES else 1
+    def _get_dte_version(self, tipo_dte):
+        return DTE_VERSION_MAP.get(tipo_dte, 1)
 
     @api.model
-    def send_dte(self, signed_jws, tipo_dte, id_envio=1, ambiente=None, company=None):
+    def _send_dte(self, signed_jws, tipo_dte, id_envio=1, ambiente=None, company=None):
         company = company or self.env.company
         config = self._get_config(company)
         ambiente = ambiente or config['ambiente']
 
         body_extra = {
             'idEnvio': id_envio,
-            'version': self.get_dte_version(tipo_dte),
+            'version': self._get_dte_version(tipo_dte),
             'tipoDte': tipo_dte,
         }
         result = self._post_signed('receptordte', signed_jws, body_extra=body_extra, company=company, ambiente=ambiente)
         return result
 
     @api.model
-    def invalidate_dte(self, signed_jws, id_envio=1, ambiente=None, company=None):
+    def _invalidate_dte(self, signed_jws, id_envio=1, ambiente=None, company=None):
         company = company or self.env.company
         config = self._get_config(company)
         ambiente = ambiente or config['ambiente']
 
         body_extra = {
             'idEnvio': id_envio,
-            'version': 2,
+            'version': INVALIDACION_VERSION,
         }
         result = self._post_signed('anulardte', signed_jws, body_extra=body_extra, company=company, ambiente=ambiente)
         return result
 
     @api.model
-    def send_contingencia(self, signed_jws, id_envio=1, ambiente=None, company=None):
+    def _send_contingencia(self, signed_jws, id_envio=1, ambiente=None, company=None):
         company = company or self.env.company
         config = self._get_config(company)
         ambiente = ambiente or config['ambiente']
 
         body_extra = {
             'idEnvio': id_envio,
-            'version': 3,
+            'version': CONTINGENCIA_VERSION,
         }
         result = self._post_signed('contingencia', signed_jws, body_extra=body_extra, company=company, ambiente=ambiente)
         return result
 
     @api.model
-    def action_test_connection(self, company=None):
+    def _test_connection(self, company=None):
         company = company or self.env.company
-        return self.authenticate(company=company, force_refresh=True)
+        return self._authenticate(company=company, force_refresh=True)
 
     @api.model
     def cron_process_contingencia(self):
@@ -221,6 +221,8 @@ class L10nSvApi(models.Model):
         el error en l10n_sv.dte.log; el DTE se mantiene en 'contingencia'
         hasta agotar el máximo de 5 intentos.
         """
+        if not self.env.su and not self.env.user.has_group('base.group_system'):
+            raise AccessError(_('Solo el sistema puede ejecutar el reenvío de contingencia.'))
         Move = self.env['account.move']
         contingent = Move.search([
             ('l10n_sv_dte_state', '=', 'contingencia'),
@@ -229,12 +231,13 @@ class L10nSvApi(models.Model):
         ])
         _logger.info('DTE contingencia cron: %d DTE(s) pendientes de reenvío.', len(contingent))
         for move in contingent:
+            move = move.with_company(move.company_id)
             try:
-                move.write({'l10n_sv_dte_contingencia': False})
+                move._l10n_sv_write({'l10n_sv_dte_contingencia': False})
                 move.action_send_dte(is_automatic=True)
             except Exception as e:
                 _logger.warning('Contingencia reenvío falló para %s: %s', move.name, e)
-                move.write({
+                move._l10n_sv_write({
                     'l10n_sv_dte_contingencia': True,
                     'l10n_sv_dte_state': 'contingencia',
                     'l10n_sv_dte_last_error': str(e),

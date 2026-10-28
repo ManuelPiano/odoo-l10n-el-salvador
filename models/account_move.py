@@ -2,8 +2,7 @@ import json
 import logging
 import uuid
 import re
-import secrets
-import string
+import zlib
 from datetime import datetime
 
 from odoo import models, fields, api
@@ -14,20 +13,48 @@ _logger = logging.getLogger(__name__)
 CONDICION_CONTADO = '1'
 CONDICION_CREDITO = '2'
 CONDICION_ANTICIPO = '3'
+UNIDAD_MEDIDA_UNIDAD = 59
+PLAZO_DIAS = '01'
+TIPO_DOCUMENTO_NIT = '36'
+COD_ESTABLE_DEFAULT = 'M001'
+TIPOS_NOTA = ('05', '06')
+TIPOS_DOCUMENTO_AJUSTABLE = ('03', '07')
+TIPO_GENERACION_ELECTRONICO = 2
+COD_PUNTO_VENTA_DEFAULT = 'P001'
+SV_TZ = 'America/El_Salvador'
+
+L10N_SV_DTE_PROTECTED_FIELDS = frozenset({
+    'l10n_sv_dte_state',
+    'l10n_sv_dte_sello_recepcion',
+    'l10n_sv_dte_codigo_generacion',
+    'l10n_sv_dte_numero_control',
+    'l10n_sv_dte_json',
+    'l10n_sv_dte_signed',
+    'l10n_sv_dte_response',
+    'l10n_sv_dte_send_attempts',
+    'l10n_sv_dte_last_attempt_at',
+    'l10n_sv_dte_last_error',
+    'l10n_sv_dte_state_changed_at',
+    'l10n_sv_dte_invalidated_at',
+    'l10n_sv_dte_qr_url',
+    'l10n_sv_dte_qr_image',
+})
 
 DTE_VERSION_MAP = {
-    '01': 1,
-    '03': 3,
-    '04': 3,
-    '05': 3,
-    '06': 3,
-    '07': 1,
-    '08': 1,
-    '09': 1,
-    '11': 1,
-    '14': 1,
-    '15': 1,
+    '01': 2,
+    '03': 4,
+    '04': 4,
+    '05': 4,
+    '06': 4,
+    '07': 2,
+    '08': 2,
+    '09': 2,
+    '11': 3,
+    '14': 2,
+    '15': 2,
 }
+INVALIDACION_VERSION = 3
+CONTINGENCIA_VERSION = 4
 
 
 class AccountMove(models.Model):
@@ -162,6 +189,15 @@ class AccountMove(models.Model):
              'Se incrusta en el reporte QWeb del DTE.',
     )
 
+    def write(self, vals):
+        if not self.env.su and L10N_SV_DTE_PROTECTED_FIELDS.intersection(vals):
+            raise UserError('Los campos del DTE solo se modifican mediante las acciones del flujo DTE.')
+        return super().write(vals)
+
+    def _l10n_sv_write(self, vals):
+        self.check_access('write')
+        return self.sudo().write(vals)
+
     @api.depends('l10n_sv_dte_log_ids')
     def _compute_l10n_sv_dte_log_count(self):
         for move in self:
@@ -172,50 +208,113 @@ class AccountMove(models.Model):
         return str(uuid.uuid4()).upper()
 
     @api.model
-    def _generate_numero_control(self, tipo_dte, cod_estable='0001', cod_punto_venta='0001'):
-        seed = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
-        correlativo = ''.join(secrets.choice(string.digits) for _ in range(15))
-        return 'DTE-%s-%s%s-%s' % (tipo_dte, cod_estable, cod_punto_venta, '%s%s' % (seed[:2], correlativo))
+    def _get_numero_control_sequence(self, company, tipo_dte, cod_estable, cod_punto_venta):
+        code = 'l10n_sv_dte.numero_control.%s.%s%s' % (tipo_dte, cod_estable, cod_punto_venta)
+        self.env.cr.execute(
+            'SELECT pg_advisory_xact_lock(%s)', [zlib.crc32(('%s:%s' % (company.id, code)).encode())],
+        )
+        Sequence = self.env['ir.sequence'].sudo()
+        sequence = Sequence.search([('code', '=', code), ('company_id', '=', company.id)], limit=1)
+        if not sequence:
+            sequence = Sequence.create({
+                'name': 'Número de control DTE %s %s-%s' % (tipo_dte, cod_estable, cod_punto_venta),
+                'code': code,
+                'company_id': company.id,
+                'implementation': 'no_gap',
+                'padding': 15,
+                'number_next': 1,
+                'number_increment': 1,
+            })
+        return sequence
+
+    @api.model
+    def _generate_numero_control(self, tipo_dte, cod_estable=COD_ESTABLE_DEFAULT, cod_punto_venta=COD_PUNTO_VENTA_DEFAULT, company=None):
+        company = company or self.env.company
+        sequence = self._get_numero_control_sequence(company, tipo_dte, cod_estable, cod_punto_venta)
+        return 'DTE-%s-%s%s-%s' % (tipo_dte, cod_estable, cod_punto_venta, sequence.next_by_id())
 
     def _ensure_dte_identifiers(self):
         self.ensure_one()
         if not self.l10n_sv_dte_tipo_doc:
             return False
+        vals = {}
         if not self.l10n_sv_dte_codigo_generacion:
-            self.l10n_sv_dte_codigo_generacion = self._generate_codigo_generacion()
+            vals['l10n_sv_dte_codigo_generacion'] = self._generate_codigo_generacion()
         if not self.l10n_sv_dte_numero_control:
             company = self.company_id
-            cod_estable = company.l10n_sv_cod_estable_mh or '0001'
-            cod_punto_venta = company.l10n_sv_cod_punto_venta_mh or '0001'
-            self.l10n_sv_dte_numero_control = self._generate_numero_control(
-                self.l10n_sv_dte_tipo_doc, cod_estable, cod_punto_venta,
+            cod_estable = company.l10n_sv_cod_estable_mh or COD_ESTABLE_DEFAULT
+            cod_punto_venta = company.l10n_sv_cod_punto_venta_mh or COD_PUNTO_VENTA_DEFAULT
+            vals['l10n_sv_dte_numero_control'] = self._generate_numero_control(
+                self.l10n_sv_dte_tipo_doc, cod_estable, cod_punto_venta, company=company,
             )
+        if vals:
+            self._l10n_sv_write(vals)
         return True
 
     def _validate_dte_basic(self):
         self.ensure_one()
         if not self.l10n_sv_dte_tipo_doc:
             raise UserError('Debe seleccionar el Tipo de Documento DTE antes de generar el JSON.')
-        if not self.partner_id.l10n_sv_municipio_id:
-            raise UserError('El cliente no tiene asignado un Municipio homologado por el MH.')
-        if not self.company_id.l10n_sv_municipio_id:
-            raise UserError('Tu empresa no tiene asignado un Municipio homologado por el MH.')
         tipo = self.l10n_sv_dte_tipo_doc
+        company, partner = self.company_id, self.partner_id
+        errores = []
+        if not company.l10n_sv_cod_actividad_id:
+            errores.append('Empresa: falta la actividad económica (CAT-019).')
+        if not company.l10n_sv_telefono or len(company.l10n_sv_telefono) < 8:
+            errores.append('Empresa: falta el teléfono (mínimo 8 caracteres).')
+        if not company.l10n_sv_correo or len(company.l10n_sv_correo) < 6:
+            errores.append('Empresa: falta el correo electrónico.')
+        if not self._l10n_sv_direccion(company):
+            errores.append('Empresa: falta departamento, municipio/distrito MH (CAT-012/013) o dirección.')
         if tipo in ('03', '05', '06'):
-            if not self.partner_id.l10n_sv_nit or not self.partner_id.l10n_sv_nrc:
-                raise UserError(
-                    'Para DTE tipo %s (CCF/NC/ND) el cliente debe tener NIT y NRC configurados.'
-                    % tipo
+            if not partner.l10n_sv_nit or not partner.l10n_sv_nrc:
+                errores.append('Cliente: para CCF/NC/ND debe tener NIT y NRC.')
+            if not partner.l10n_sv_cod_actividad_id:
+                errores.append('Cliente: para CCF/NC/ND debe tener actividad económica (CAT-019).')
+            if not self._l10n_sv_direccion(partner):
+                errores.append('Cliente: falta departamento, municipio/distrito MH (CAT-012/013) o dirección.')
+        if tipo in TIPOS_NOTA:
+            origen = self._l10n_sv_documento_origen()
+            if not origen:
+                errores.append(
+                    'Nota de crédito/débito: debe vincularse al documento que ajusta '
+                    '(factura rectificada o de origen del débito).'
                 )
-        if tipo == '01' and not self.partner_id.l10n_sv_nit and not self.partner_id.l10n_sv_num_documento:
-            raise UserError(
-                'Para Factura de Consumidor Final (01) el cliente debe tener NIT o un número de documento (DUI/Pasaporte).'
-            )
+            elif origen.l10n_sv_dte_tipo_doc not in TIPOS_DOCUMENTO_AJUSTABLE:
+                errores.append('Nota de crédito/débito: solo puede ajustar un CCF (03) o comprobante de retención (07).')
+            elif not (origen.l10n_sv_dte_codigo_generacion and origen.l10n_sv_dte_sello_recepcion):
+                errores.append('Nota de crédito/débito: el documento de origen %s aún no fue procesado por el MH.' % origen.name)
+        if tipo == '01' and not partner.l10n_sv_nit and not partner.l10n_sv_num_documento:
+            errores.append('Cliente: para Factura de Consumidor Final debe tener NIT o número de documento (DUI/Pasaporte).')
+        if errores:
+            raise UserError('No se puede generar el DTE:\n- %s' % '\n- '.join(errores))
 
     @api.model
     def _default_forma_pago(self):
         forma = self.env['l10n_sv.forma_pago'].search([('code', '=', '01')], limit=1)
         return forma.id if forma else False
+
+    @api.model
+    def _l10n_sv_digits(self, value):
+        return re.sub(r'[^0-9]', '', value or '')
+
+    @api.model
+    def _l10n_sv_or_none(self, value, min_length=1):
+        value = (value or '').strip()
+        return value if len(value) >= min_length else None
+
+    @api.model
+    def _l10n_sv_direccion(self, record):
+        municipio = record.l10n_sv_municipio_id
+        departamento = record.state_id.l10n_sv_code or municipio.state_id.l10n_sv_code
+        if not (departamento and municipio.municipio_mh and municipio.distrito_mh and record.street):
+            return None
+        return {
+            'departamento': departamento,
+            'municipio': municipio.municipio_mh,
+            'distrito': municipio.distrito_mh,
+            'complemento': record.street[:200],
+        }
 
     def _get_dte_line_tributos(self, line):
         tributos = []
@@ -241,192 +340,263 @@ class AccountMove(models.Model):
             })
         return tributos
 
-    def _get_dte_line_iva_item(self, line):
-        for tax in line.tax_ids:
-            tributo = tax.l10n_sv_tributo_id
-            if tributo and tributo.code == '20':
-                if tax.amount_type == 'percent':
-                    monto = round(line.price_subtotal * (tax.amount / 100.0), 2)
-                else:
-                    tax_data = tax.compute_all(
-                        line.price_unit, currency=line.currency_id, quantity=line.quantity,
-                        product=line.product_id, partner=line.partner_id,
-                    )
-                    monto = round(abs(tax_data['taxes'][0]['amount']), 2) if tax_data['taxes'] else 0.0
-                return {'codigo': '20', 'monto': abs(monto)}
-        return None
+    def _l10n_sv_documento_origen(self):
+        if self.l10n_sv_dte_tipo_doc == '05':
+            return self.reversed_entry_id
+        if self.l10n_sv_dte_tipo_doc == '06':
+            return self.debit_origin_id
+        return self.browse()
 
     def _build_cuerpo_documento(self):
-        version = DTE_VERSION_MAP.get(self.l10n_sv_dte_tipo_doc, 1)
+        tipo = self.l10n_sv_dte_tipo_doc
+        iva_incluido = tipo == '01'
+        es_nota = tipo in TIPOS_NOTA
+        documento_origen = self._l10n_sv_documento_origen().l10n_sv_dte_codigo_generacion if es_nota else None
         cuerpo = []
         resumen = {
             'totalNoSuj': 0.0,
             'totalExenta': 0.0,
             'totalGravada': 0.0,
             'totalNoGravado': 0.0,
-            'descuNoSuj': 0.0,
-            'descuExenta': 0.0,
-            'descuGravada': 0.0,
             'montoTotalOperacion': 0.0,
             'tributos': {},
-            'iva_items': {},
+            'totalIva': 0.0,
         }
-        for idx, line in enumerate(self.invoice_line_ids.filtered(lambda l: not l.display_type), start=1):
+        for idx, line in enumerate(self.invoice_line_ids.filtered(lambda l: l.display_type == 'product'), start=1):
             price_unit = round(line.price_unit, 2)
             discount_pct = line.discount or 0.0
             descuento = round(price_unit * line.quantity * (discount_pct / 100.0), 2)
             gravada = round(line.price_subtotal, 2)
+            tributos = self._get_dte_line_tributos(line)
+            iva_linea = sum(t['valor'] for t in tributos if t['codigo'] == '20')
+            if iva_incluido or es_nota:
+                tributos = [t for t in tributos if t['codigo'] != '20']
+                resumen['totalIva'] += iva_linea
+            if iva_incluido:
+                gravada = round(line.price_total, 2)
+                if line.quantity and discount_pct < 100:
+                    price_unit = round(line.price_total / line.quantity / (1 - discount_pct / 100.0), 2)
+                descuento = round(price_unit * line.quantity - gravada, 2) if discount_pct else 0.0
             item = {
                 'numItem': idx,
-                'tipoItem': 1,
+                'tipoItem': 2 if line.product_id.type == 'service' else 1,
+                'numeroDocumento': documento_origen,
                 'cantidad': line.quantity,
-                'codigo': line.product_id.default_code or 'SERV',
-                'descripcion': line.name,
+                'codigo': self._l10n_sv_or_none((line.product_id.default_code or '')[:25]),
+                'codTributo': None,
+                'uniMedida': UNIDAD_MEDIDA_UNIDAD,
+                'descripcion': (line.name or line.product_id.display_name or '')[:1500],
                 'precioUni': price_unit,
-                'montoDescu': descuento,
+                'montoDescu': max(descuento, 0.0),
                 'ventaNoSuj': 0.0,
                 'ventaExenta': 0.0,
                 'ventaGravada': gravada,
+                'tributos': [t['codigo'] for t in tributos] or None,
+                'psv': 0.0,
                 'noGravado': 0.0,
-                'psv': round(line.price_total, 2),
             }
-            tributos = self._get_dte_line_tributos(line)
-            if tributos:
-                item['tributos'] = tributos
-                item['codTributo'] = tributos[0]['codigo']
-            if version >= 3:
-                iva = self._get_dte_line_iva_item(line)
-                if iva:
-                    item['ivaItem'] = iva
+            if iva_incluido:
+                item['ivaItem'] = round(iva_linea, 2)
+            if es_nota:
+                del item['psv']
+                item.update({'ivaPerci': 0.0, 'totalIva': round(iva_linea, 2), 'ivaRete': 0.0})
             cuerpo.append(item)
             resumen['totalGravada'] += gravada
-            resumen['descuGravada'] += descuento
             resumen['montoTotalOperacion'] += line.price_total
             for tr in tributos:
                 agg = resumen['tributos'].setdefault(
                     tr['codigo'], {'codigo': tr['codigo'], 'descripcion': tr['descripcion'], 'valor': 0.0},
                 )
                 agg['valor'] += tr['valor']
-            if version >= 3 and 'ivaItem' in item:
-                cod = item['ivaItem']['codigo']
-                iva_agg = resumen['iva_items'].setdefault(cod, {'codigo': cod, 'monto': 0.0})
-                iva_agg['monto'] += item['ivaItem']['monto']
         return cuerpo, resumen
 
     def _build_pagos(self):
         condicion = self.l10n_sv_dte_condicion_operacion or CONDICION_CONTADO
         forma_codigo = self.l10n_sv_dte_forma_pago_id.code if self.l10n_sv_dte_forma_pago_id else '01'
+        referencia = self._l10n_sv_or_none(self.l10n_sv_dte_num_pago_electronico)
         total = round(self.amount_total, 2)
-        if condicion == CONDICION_CONTADO:
-            return [{
+
+        def pago(monto, dias=None):
+            return {
                 'codigo': forma_codigo,
-                'montoPago': total,
-                'referencia': self.l10n_sv_dte_num_pago_electronico or '',
-            }]
-        term = self.invoice_payment_term_id
-        if not term or not term.line_ids:
-            return [{
-                'codigo': forma_codigo,
-                'plazo': '01',
-                'montoPago': total,
-                'referencia': self.l10n_sv_dte_num_pago_electronico or '',
-            }]
-        pagos = []
-        for term_line in term.line_ids:
-            monto = round(total * (term_line.value_amount / 100.0), 2)
-            pagos.append({
-                'codigo': forma_codigo,
-                'plazo': '%02d' % (term_line.days or 0),
-                'referencia': self.l10n_sv_dte_num_pago_electronico or '',
-                'periodo': {
-                    'plazo': '%02d' % (term_line.days or 0),
-                },
                 'montoPago': monto,
-            })
-        if pagos and abs(sum(p['montoPago'] for p in pagos) - total) > 0.01:
+                'referencia': referencia,
+                'plazo': PLAZO_DIAS if dias else None,
+                'periodo': dias or None,
+            }
+
+        if condicion == CONDICION_CONTADO:
+            return [pago(total)]
+        fecha_base = self.invoice_date or fields.Date.context_today(self)
+        cuotas = self.line_ids.filtered(lambda l: l.display_type == 'payment_term').sorted(
+            lambda l: (l.date_maturity or fecha_base, l.id),
+        )
+        if not cuotas:
+            return [pago(total)]
+        pagos = [
+            pago(round(abs(cuota.amount_currency), 2), max(((cuota.date_maturity or fecha_base) - fecha_base).days, 0))
+            for cuota in cuotas
+        ]
+        if abs(sum(p['montoPago'] for p in pagos) - total) > 0.001:
             pagos[-1]['montoPago'] = round(total - sum(p['montoPago'] for p in pagos[:-1]), 2)
         return pagos
 
     def _build_resumen(self, resumen):
-        version = DTE_VERSION_MAP.get(self.l10n_sv_dte_tipo_doc, 1)
-        condicion = int(self.l10n_sv_dte_condicion_operacion or CONDICION_CONTADO)
+        tipo = self.l10n_sv_dte_tipo_doc
         total_gravada = round(resumen['totalGravada'], 2)
         total_exenta = round(resumen['totalExenta'], 2)
         total_no_suj = round(resumen['totalNoSuj'], 2)
-        total_no_gravado = round(resumen['totalNoGravado'], 2)
-        descu_gravada = round(resumen['descuGravada'], 2)
-        descu_exenta = round(resumen['descuExenta'], 2)
-        descu_no_suj = round(resumen['descuNoSuj'], 2)
         sub_total_ventas = round(total_gravada + total_exenta + total_no_suj, 2)
-        total_descu = round(descu_gravada + descu_exenta + descu_no_suj, 2)
-        porcentaje = round((total_descu / sub_total_ventas * 100.0) if sub_total_ventas else 0.0, 2)
-        sub_total = round(sub_total_ventas - total_descu, 2)
-        iva_13 = resumen['iva_items'].get('20', {}).get('monto', 0.0) if version >= 3 else 0.0
-        if version < 3:
-            iva_13 = round(total_gravada * 0.13, 2)
+        tributos_out = [
+            {'codigo': t['codigo'], 'descripcion': t['descripcion'], 'valor': round(t['valor'], 2)}
+            for t in resumen['tributos'].values()
+        ]
         monto_total_operacion = round(resumen['montoTotalOperacion'], 2)
-        total_pagar = round(monto_total_operacion, 2)
         resumen_out = {
             'totalNoSuj': total_no_suj,
             'totalExenta': total_exenta,
             'totalGravada': total_gravada,
             'subTotalVentas': sub_total_ventas,
-            'descuNoSuj': descu_no_suj,
-            'descuExenta': descu_exenta,
-            'descuGravada': descu_gravada,
-            'porcentajeDescuento': porcentaje,
-            'totalDescu': total_descu,
-            'subTotal': sub_total,
+            'descuNoSuj': 0.0,
+            'descuExenta': 0.0,
+            'descuGravada': 0.0,
+            'porcentajeDescuento': 0.0,
+            'totalDescu': 0.0,
+            'tributos': tributos_out or None,
+            'subTotal': sub_total_ventas,
+            'ivaRete': 0.0,
             'montoTotalOperacion': monto_total_operacion,
-            'totalNoGravado': total_no_gravado,
-            'totalPagar': total_pagar,
-            'totalLetras': self._num_to_words_es(total_pagar),
+            'totalNoGravado': round(resumen['totalNoGravado'], 2),
+            'totalPagar': monto_total_operacion,
+            'totalLetras': self._num_to_words_es(monto_total_operacion),
             'saldoFavor': 0.0,
-            'condicionOperacion': condicion,
+            'condicionOperacion': int(self.l10n_sv_dte_condicion_operacion or CONDICION_CONTADO),
+            'pagos': self._build_pagos(),
+            'numPagoElectronico': self._l10n_sv_or_none(self.l10n_sv_dte_num_pago_electronico),
+            'observaciones': self._l10n_sv_or_none((self.l10n_sv_dte_observaciones or '')[:3000]),
         }
-        if version >= 3:
-            resumen_out['ivaRete1'] = 0.0
-            resumen_out['reteRenta'] = 0.0
+        if tipo in TIPOS_NOTA:
+            return self._build_resumen_nota(resumen_out, resumen)
+        if tipo == '01':
+            resumen_out['totalIva'] = round(resumen['totalIva'], 2)
         else:
-            resumen_out['ivaPerci1'] = 0.0
-            resumen_out['ivaRete1'] = 0.0
-            resumen_out['reteRenta'] = 0.0
-        tributos_out = [
-            {'codigo': t['codigo'], 'descripcion': t['descripcion'], 'valor': round(t['valor'], 2)}
-            for t in resumen['tributos'].values()
-        ]
-        if tributos_out:
-            resumen_out['tributos'] = tributos_out
-        if version >= 3 and resumen['iva_items']:
-            resumen_out['iva'] = [
-                {'ivaItem': {'codigo': i['codigo'], 'monto': round(i['monto'], 2)}}
-                for i in resumen['iva_items'].values()
-            ]
+            resumen_out['ivaPerci'] = 0.0
         return resumen_out
 
+    def _build_resumen_nota(self, resumen_out, resumen):
+        claves = [
+            'totalNoSuj', 'totalExenta', 'totalGravada', 'subTotalVentas', 'totalDescu', 'tributos',
+            'ivaRete', 'montoTotalOperacion', 'totalNoGravado', 'totalPagar', 'totalLetras',
+            'condicionOperacion', 'observaciones',
+        ]
+        if self.l10n_sv_dte_tipo_doc == '06':
+            claves.append('numPagoElectronico')
+        nota = {clave: resumen_out[clave] for clave in claves}
+        nota.update({
+            'ivaPerci': 0.0,
+            'totalIva': round(resumen['totalIva'], 2),
+            'codigoRetencionMH': None,
+        })
+        return nota
+
     def _build_documento_relacionado(self):
-        if self.l10n_sv_dte_tipo_doc not in ('05', '06'):
+        if self.l10n_sv_dte_tipo_doc not in TIPOS_NOTA:
             return None
-        if not self.reversed_entry_id:
-            return None
-        ref = self.reversed_entry_id
+        origen = self._l10n_sv_documento_origen()
         return [{
-            'tipoDocumento': 'DTE-%s' % (ref.l10n_sv_dte_tipo_doc or '03'),
-            'tipoGeneracion': 1,
-            'numeroDocumento': ref.l10n_sv_dte_numero_control or '',
-            'fechaEmision': fields.Date.to_string(ref.invoice_date) if ref.invoice_date else '',
+            'tipoDocumento': origen.l10n_sv_dte_tipo_doc,
+            'tipoGeneracion': TIPO_GENERACION_ELECTRONICO,
+            'numeroDocumento': origen.l10n_sv_dte_codigo_generacion,
+            'fechaEmision': fields.Date.to_string(origen.invoice_date),
         }]
 
-    def _build_extension(self):
-        if not self.l10n_sv_dte_observaciones:
-            return None
-        return {
-            'nombEntrega': self.partner_id.name or '',
-            'docuEntrega': re.sub(r'[^0-9]', '', self.partner_id.l10n_sv_nit or ''),
-            'nombRecibe': self.partner_id.name or '',
-            'docuRecibe': re.sub(r'[^0-9]', '', self.partner_id.l10n_sv_nit or ''),
-            'observaciones': self.l10n_sv_dte_observaciones,
+    def _build_emisor(self):
+        company = self.company_id
+        emisor = {
+            'nit': self._l10n_sv_digits(company.l10n_sv_nit),
+            'nrc': self._l10n_sv_digits(company.l10n_sv_nrc),
+            'nombre': company.name,
+            'codActividad': company.l10n_sv_cod_actividad_id.code,
+            'descActividad': (company.l10n_sv_desc_actividad or company.l10n_sv_cod_actividad_id.description or '')[:150],
+            'nombreComercial': self._l10n_sv_or_none(company.l10n_sv_nombre_comercial),
+            'direccion': self._l10n_sv_direccion(company),
+            'telefono': company.l10n_sv_telefono,
+            'correo': company.l10n_sv_correo,
+            'codEstable': company.l10n_sv_cod_estable_mh or COD_ESTABLE_DEFAULT,
+            'codPuntoVenta': company.l10n_sv_cod_punto_venta_mh or COD_PUNTO_VENTA_DEFAULT,
         }
+        if self.l10n_sv_dte_tipo_doc in TIPOS_NOTA:
+            del emisor['codEstable'], emisor['codPuntoVenta']
+        return emisor
+
+    def _build_receptor(self):
+        partner = self.partner_id
+        actividad = partner.l10n_sv_cod_actividad_id
+        nrc = self._l10n_sv_or_none(self._l10n_sv_digits(partner.l10n_sv_nrc), 2)
+        telefono = self._l10n_sv_or_none(partner.phone, 8)
+        correo = self._l10n_sv_or_none(partner.email, 6)
+        if self.l10n_sv_dte_tipo_doc == '01':
+            if partner.l10n_sv_nit:
+                tipo_documento, num_documento = TIPO_DOCUMENTO_NIT, self._l10n_sv_digits(partner.l10n_sv_nit)
+            else:
+                tipo_documento = partner.l10n_sv_tipo_documento_id.code or None
+                num_documento = self._l10n_sv_or_none(partner.l10n_sv_num_documento)
+            return {
+                'tipoDocumento': tipo_documento,
+                'numDocumento': num_documento,
+                'nrc': nrc,
+                'nombre': self._l10n_sv_or_none(partner.name),
+                'codActividad': actividad.code or None,
+                'descActividad': self._l10n_sv_or_none((actividad.description or '')[:150], 5),
+                'direccion': self._l10n_sv_direccion(partner),
+                'telefono': telefono,
+                'correo': correo,
+            }
+        if self.l10n_sv_dte_tipo_doc in TIPOS_NOTA:
+            return {
+                'tipoDocumento': TIPO_DOCUMENTO_NIT,
+                'numDocumento': self._l10n_sv_digits(partner.l10n_sv_nit),
+                'nrc': nrc,
+                'nombre': partner.name,
+                'codActividad': actividad.code,
+                'descActividad': (actividad.description or '')[:150],
+                'nombreComercial': self._l10n_sv_or_none(partner.l10n_sv_nombre_comercial),
+                'direccion': self._l10n_sv_direccion(partner),
+                'telefono': telefono,
+                'correo': correo,
+            }
+        return {
+            'nit': self._l10n_sv_digits(partner.l10n_sv_nit),
+            'nrc': nrc,
+            'nombre': partner.name,
+            'codActividad': actividad.code,
+            'descActividad': (actividad.description or '')[:150],
+            'nombreComercial': self._l10n_sv_or_none(partner.l10n_sv_nombre_comercial),
+            'direccion': self._l10n_sv_direccion(partner),
+            'telefono': telefono,
+            'correo': correo,
+        }
+
+    def _build_identificacion(self):
+        contingencia = self.l10n_sv_dte_contingencia and self.l10n_sv_dte_tipo_contingencia
+        ahora = fields.Datetime.context_timestamp(self.with_context(tz=SV_TZ), fields.Datetime.now())
+        identificacion = {
+            'version': DTE_VERSION_MAP.get(self.l10n_sv_dte_tipo_doc, 1),
+            'ambiente': self.company_id.l10n_sv_ambiente or '00',
+            'tipoDte': self.l10n_sv_dte_tipo_doc,
+            'numeroControl': self.l10n_sv_dte_numero_control,
+            'codigoGeneracion': self.l10n_sv_dte_codigo_generacion,
+            'tipoModelo': 2 if contingencia else 1,
+            'tipoOperacion': 2 if contingencia else 1,
+            'tipoContingencia': int(self.l10n_sv_dte_tipo_contingencia) if contingencia else None,
+            'motivoContin': None,
+            'fecEmi': fields.Date.to_string(self.invoice_date or ahora.date()),
+            'horEmi': ahora.strftime('%H:%M:%S'),
+            'tipoMoneda': self.currency_id.name or 'USD',
+        }
+        if self.l10n_sv_dte_tipo_doc in TIPOS_NOTA:
+            identificacion['fusion'] = None
+        return identificacion
 
     def _num_to_words_es(self, amount):
         if amount is None:
@@ -481,94 +651,26 @@ class AccountMove(models.Model):
         self.ensure_one()
         self._validate_dte_basic()
         self._ensure_dte_identifiers()
-
-        identificacion = {
-            'version': DTE_VERSION_MAP.get(self.l10n_sv_dte_tipo_doc, 1),
-            'ambiente': self.company_id.l10n_sv_ambiente or '00',
-            'tipoDte': self.l10n_sv_dte_tipo_doc,
-            'numeroControl': self.l10n_sv_dte_numero_control,
-            'codigoGeneracion': self.l10n_sv_dte_codigo_generacion,
-            'tipoModelo': 1,
-            'tipoOperacion': 1,
-            'fecEmi': fields.Date.to_string(self.invoice_date) if self.invoice_date else fields.Date.to_string(fields.Date.today()),
-            'horEmi': datetime.now().strftime('%H:%M:%S'),
-            'tipoMoneda': self.currency_id.name or 'USD',
-        }
-
-        emisor = {
-            'nit': re.sub(r'[^0-9]', '', self.company_id.l10n_sv_nit or ''),
-            'nrc': re.sub(r'[^0-9]', '', self.company_id.l10n_sv_nrc or ''),
-            'nombre': self.company_id.name,
-            'nombreComercial': self.company_id.l10n_sv_nombre_comercial or '',
-            'codActividad': self.company_id.l10n_sv_cod_actividad_id.code or '',
-            'descActividad': self.company_id.l10n_sv_desc_actividad or self.company_id.l10n_sv_cod_actividad_id.description or '',
-            'tipoEstablecimiento': self.company_id.l10n_sv_tipo_establecimiento_id.code or '01',
-            'direccion': {
-                'departamento': self.company_id.state_id.l10n_sv_code or '',
-                'municipio': self.company_id.l10n_sv_municipio_id.code[:2] if self.company_id.l10n_sv_municipio_id else '',
-                'complemento': self.company_id.street or 'San Salvador',
-            },
-        }
-        if self.company_id.l10n_sv_telefono:
-            emisor['telefono'] = self.company_id.l10n_sv_telefono
-        if self.company_id.l10n_sv_correo:
-            emisor['correo'] = self.company_id.l10n_sv_correo
-        if self.company_id.l10n_sv_cod_estable_mh:
-            emisor['codEstableMH'] = self.company_id.l10n_sv_cod_estable_mh
-        if self.company_id.l10n_sv_cod_punto_venta_mh:
-            emisor['codPuntoVentaMH'] = self.company_id.l10n_sv_cod_punto_venta_mh
-
-        receptor = {
-            'nit': re.sub(r'[^0-9]', '', self.partner_id.l10n_sv_nit or ''),
-            'nrc': re.sub(r'[^0-9]', '', self.partner_id.l10n_sv_nrc or ''),
-            'nombre': self.partner_id.name,
-            'codActividad': self.partner_id.l10n_sv_giro or '',
-            'direccion': {
-                'departamento': self.partner_id.state_id.l10n_sv_code or '',
-                'municipio': self.partner_id.l10n_sv_municipio_id.code[:2] if self.partner_id.l10n_sv_municipio_id else '',
-                'complemento': self.partner_id.street or 'Dirección Cliente',
-            },
-        }
-        if self.l10n_sv_dte_tipo_doc == '01':
-            tipo_doc = self.partner_id.l10n_sv_tipo_documento_id
-            if tipo_doc and not self.partner_id.l10n_sv_nit:
-                receptor['tipoDocumento'] = tipo_doc.code
-                receptor['numDocumento'] = self.partner_id.l10n_sv_num_documento or ''
-
         cuerpo_documento, resumen = self._build_cuerpo_documento()
-        resumen_out = self._build_resumen(resumen)
-        pagos = self._build_pagos()
-        if pagos:
-            resumen_out['pagos'] = pagos
-        if self.l10n_sv_dte_num_pago_electronico:
-            resumen_out['numPagoElectronico'] = self.l10n_sv_dte_num_pago_electronico
-
         dte_payload = {
-            'identificacion': identificacion,
-            'emisor': emisor,
-            'receptor': receptor,
+            'identificacion': self._build_identificacion(),
+            'documentoRelacionado': self._build_documento_relacionado(),
+            'emisor': self._build_emisor(),
+            'receptor': self._build_receptor(),
+            'otrosDocumentos': None,
+            'ventaTercero': None,
             'cuerpoDocumento': cuerpo_documento,
-            'resumen': resumen_out,
+            'resumen': self._build_resumen(resumen),
+            'apendice': None,
         }
-
-        doc_rel = self._build_documento_relacionado()
-        if doc_rel:
-            dte_payload['documentoRelacionado'] = doc_rel
-
-        extension = self._build_extension()
-        if extension:
-            dte_payload['extension'] = extension
-
-        _logger.info('====== DTE PAYLOAD GENERADO PARA EL MH ======')
-        _logger.info(dte_payload)
-        _logger.info('=============================================')
-
-        import json
-        self.write({
+        if self.l10n_sv_dte_tipo_doc in TIPOS_NOTA:
+            del dte_payload['otrosDocumentos']
+        self.env['l10n_sv.dte.schema']._validate(dte_payload)
+        _logger.info('DTE generado: %s', self.l10n_sv_dte_numero_control)
+        self._l10n_sv_write({
             'l10n_sv_dte_state': 'json_generated',
             'l10n_sv_dte_json': json.dumps(dte_payload, ensure_ascii=False, indent=2),
         })
-
         return dte_payload
 
     def action_sign_dte(self):
@@ -576,13 +678,13 @@ class AccountMove(models.Model):
         if not self.l10n_sv_dte_json:
             payload = self.action_generate_dte_json()
         else:
-            import json
             payload = json.loads(self.l10n_sv_dte_json)
+            self.env['l10n_sv.dte.schema']._validate(payload)
 
         signer = self.env['l10n_sv.signer'].sudo()
-        jws = signer.sign_and_store(self, payload)
+        jws = signer._sign_and_store(self, payload)
 
-        self.write({
+        self._l10n_sv_write({
             'l10n_sv_dte_signed': jws,
             'l10n_sv_dte_state': 'signed',
         })
@@ -597,7 +699,7 @@ class AccountMove(models.Model):
         }
         if extra:
             vals.update(extra)
-        self.write(vals)
+        self._l10n_sv_write(vals)
         return True
 
     def _log_dte_attempt(self, operation, success, response=None, error_message=None,
@@ -622,13 +724,7 @@ class AccountMove(models.Model):
         nit = re.sub(r'[^0-9]', '', self.company_id.l10n_sv_nit or '')
         fecha = fields.Date.to_string(self.invoice_date) if self.invoice_date else fields.Date.to_string(fields.Date.today())
         total = round(self.amount_total, 2)
-        cuerpo, resumen_agg = self._build_cuerpo_documento()
-        iva_monto = 0.0
-        for iva in resumen_agg.get('iva_items', {}).values():
-            iva_monto += iva.get('monto', 0.0)
-        iva_monto = round(iva_monto, 2)
-        if not iva_monto:
-            iva_monto = round(total - self.amount_untaxed, 2)
+        iva_monto = round(total - self.amount_untaxed, 2)
         from urllib.parse import urlencode
         params = urlencode({
             'nit': nit,
@@ -680,7 +776,7 @@ class AccountMove(models.Model):
                 'instalada en el entorno de Odoo (pip install qrcode).'
             )
         url, svg_bytes = result
-        self.write({
+        self._l10n_sv_write({
             'l10n_sv_dte_qr_url': url,
             'l10n_sv_dte_qr_image': svg_bytes,
         })
@@ -699,7 +795,7 @@ class AccountMove(models.Model):
         self.ensure_one()
         if not self.l10n_sv_dte_signed:
             self.action_sign_dte()
-        if self.l10n_sv_dte_state == 'processed':
+        if self.l10n_sv_dte_state == 'processed' or self.l10n_sv_dte_sello_recepcion:
             raise UserError('Este DTE ya fue procesado por el MH (sello: %s).' % self.l10n_sv_dte_sello_recepcion)
         if self.l10n_sv_dte_state == 'invalidated':
             raise UserError('Este DTE ya fue invalidado por el MH.')
@@ -710,23 +806,27 @@ class AccountMove(models.Model):
             })
             api = self.env['l10n_sv.api'].sudo()
             try:
-                response = api.send_dte(
+                response = api._send_dte(
                     signed_jws=self.l10n_sv_dte_signed,
                     tipo_dte=self.l10n_sv_dte_tipo_doc,
+                    company=self.company_id,
                 )
             except Exception as e:
+                _logger.exception('Error comunicando con el MH al enviar %s', self.l10n_sv_dte_numero_control)
                 self._log_dte_attempt(
                     operation='send' if not is_automatic else 'contingencia',
                     success=False,
                     error_message=str(e),
                     is_automatic=is_automatic,
                 )
-                self.write({
-                    'l10n_sv_dte_state': 'rejected',
-                    'l10n_sv_dte_last_error': str(e),
-                    'l10n_sv_dte_state_changed_at': fields.Datetime.now(),
-                })
-                raise
+                if is_automatic:
+                    self._write_dte_state('contingencia', {
+                        'l10n_sv_dte_contingencia': True,
+                        'l10n_sv_dte_last_error': str(e),
+                    })
+                else:
+                    self._write_dte_state('rejected', {'l10n_sv_dte_last_error': str(e)})
+                return self._l10n_sv_error_notification(str(e))
             body = (response or {}).get('body') if isinstance(response, dict) else None
             sello = (body or {}).get('selloRecibido') or (body or {}).get('selloRecepcion') if isinstance(body, dict) else None
             response_code = (body or {}).get('codigoMsg') or (body or {}).get('codigo') if isinstance(body, dict) else None
@@ -748,7 +848,7 @@ class AccountMove(models.Model):
                 qr_result = self._generate_qr_image()
                 if qr_result:
                     url, svg_bytes = qr_result
-                    self.write({
+                    self._l10n_sv_write({
                         'l10n_sv_dte_qr_url': url,
                         'l10n_sv_dte_qr_image': svg_bytes,
                     })
@@ -779,6 +879,8 @@ class AccountMove(models.Model):
 
     def action_resend_dte(self):
         self.ensure_one()
+        if self.l10n_sv_dte_sello_recepcion:
+            raise UserError('Este DTE tiene sello de recepción del MH y no puede reenviarse.')
         if self.l10n_sv_dte_state not in ('rejected', 'contingencia'):
             raise UserError(
                 'Solo se pueden reenviar DTEs en estado Rechazado o Contingencia. '
@@ -790,19 +892,19 @@ class AccountMove(models.Model):
                 'Revise la configuración o contacte a soporte antes de reintentar.',
             )
         if self.l10n_sv_dte_state == 'contingencia':
-            self.write({'l10n_sv_dte_contingencia': False})
+            self._l10n_sv_write({'l10n_sv_dte_contingencia': False})
         return self.action_send_dte()
 
     def action_reset_to_draft(self):
         self.ensure_one()
-        if self.l10n_sv_dte_state == 'processed':
+        if self.l10n_sv_dte_state == 'processed' or self.l10n_sv_dte_sello_recepcion:
             raise UserError(
                 'No se puede reiniciar un DTE ya procesado por el MH. '
                 'Si necesita corregirlo, invalídelo primero y luego emita uno nuevo.',
             )
         if self.l10n_sv_dte_state == 'invalidated':
             raise UserError('Este DTE ya fue invalidado por el MH y no puede reiniciarse.')
-        return self.write({
+        return self._l10n_sv_write({
             'l10n_sv_dte_state': 'draft',
             'l10n_sv_dte_state_changed_at': fields.Datetime.now(),
             'l10n_sv_dte_json': False,
@@ -819,14 +921,12 @@ class AccountMove(models.Model):
             raise UserError('Solo se pueden invalidar DTEs que ya fueron procesados por el MH (con sello de recepción).')
         if not self.l10n_sv_dte_codigo_generacion:
             raise UserError('El DTE no tiene código de generación. No se puede invalidar.')
-        if not self.company_id.l10n_sv_certificate_id:
-            raise UserError('La compañía no tiene un certificado digital MH configurado.')
 
         self._write_dte_state('invalidating')
 
         invalidacion = {
             'identificacion': {
-                'version': 2,
+                'version': INVALIDACION_VERSION,
                 'ambiente': self.company_id.l10n_sv_ambiente or '00',
                 'codigoGeneracion': self.l10n_sv_dte_codigo_generacion,
                 'fecAnula': fields.Date.to_string(fields.Date.today()),
@@ -859,21 +959,21 @@ class AccountMove(models.Model):
 
         signer = self.env['l10n_sv.signer'].sudo()
         nit = self.company_id.l10n_sv_nit_emisor or self.company_id.l10n_sv_nit or ''
-        cert_bytes = self.company_id.l10n_sv_certificate_id.raw
-        private_key = signer.parse_mh_certificate(cert_bytes)
+        private_key = signer._load_company_private_key(self.company_id)
         jws = signer.sign_dte(invalidacion, private_key, nit)
 
         api = self.env['l10n_sv.api'].sudo()
         try:
-            response = api.invalidate_dte(signed_jws=jws)
+            response = api._invalidate_dte(signed_jws=jws, company=self.company_id)
         except Exception as e:
+            _logger.exception('Error comunicando con el MH al invalidar %s', self.l10n_sv_dte_numero_control)
             self._log_dte_attempt(
                 operation='invalidate',
                 success=False,
                 error_message=str(e),
             )
-            self._write_dte_state('rejected', {'l10n_sv_dte_last_error': str(e)})
-            raise
+            self._write_dte_state('processed', {'l10n_sv_dte_last_error': str(e)})
+            return self._l10n_sv_error_notification(str(e))
 
         body = (response or {}).get('body') if isinstance(response, dict) else None
         status = (response or {}).get('status') if isinstance(response, dict) else None
@@ -897,5 +997,18 @@ class AccountMove(models.Model):
                 error_message=error_msg,
                 status_code=str(response.get('statusCode')) if isinstance(response, dict) else '',
             )
-            self._write_dte_state('rejected', {'l10n_sv_dte_last_error': error_msg})
+            self._write_dte_state('processed', {'l10n_sv_dte_last_error': error_msg})
         return True
+
+    def _l10n_sv_error_notification(self, message):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Error de comunicación con el MH',
+                'message': message,
+                'type': 'danger',
+                'sticky': True,
+                'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},
+            },
+        }

@@ -235,3 +235,4 @@ integration_tests/.env
 integration_tests/*.crt
 integration_tests/*.pem
 integration_tests/*.key
+auditoria/

@@ -221,7 +221,7 @@ re-intenta el envío cada 5 minutos.
 | 14 | Factura de Sujeto Excluido (FSE) | 1 |
 | 15 | Donación | 1 |
 
-`l10n_sv.api.get_dte_version(tipo_dte)` retorna la versión según esta
+`l10n_sv.api._get_dte_version(tipo_dte)` retorna la versión según esta
 tabla, que se inserta en `identificacion.version` del JSON DTE.
 
 ## Manejo de errores HTTP
@@ -257,7 +257,7 @@ bitácora*.
 ## Probar la conexión
 
 En la ficha de la empresa, botón **"Probar Conexión MH"**. Internamente
-llama `l10n_sv.api.action_test_connection(company=...)` que:
+llama `l10n_sv.api._test_connection(company=...)` que:
 
 1. Hace `authenticate(force_refresh=True)` con las credenciales cacheadas.
 2. Si obtiene token → notificación de éxito.

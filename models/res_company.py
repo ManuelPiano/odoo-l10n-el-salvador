@@ -1,4 +1,7 @@
 from odoo import models, fields, api, _
+import re
+
+from odoo.exceptions import AccessError, ValidationError
 
 
 class ResCompany(models.Model):
@@ -34,12 +37,12 @@ class ResCompany(models.Model):
     l10n_sv_cod_estable_mh = fields.Char(
         string='Código Establecimiento MH',
         size=4,
-        help='Código del establecimiento asignado por el MH (4 dígitos). Requerido para CCF.'
+        help='Código del establecimiento: letra del tipo (M matriz, S sucursal, B bodega, P patio) y 3 dígitos. Ej: M001.'
     )
     l10n_sv_cod_punto_venta_mh = fields.Char(
         string='Código Punto de Venta MH',
         size=4,
-        help='Código del punto de venta asignado por el MH (4 dígitos). Requerido para CCF.'
+        help='Código del punto de venta: P y 3 dígitos. Ej: P001.'
     )
 
     l10n_sv_ambiente = fields.Selection([
@@ -48,17 +51,28 @@ class ResCompany(models.Model):
     ], string='Ambiente MH', default='00', required=True,
         help='Ambiente de la API del Ministerio de Hacienda. Use 00 para pruebas y 01 para producción.')
 
-    l10n_sv_certificate_id = fields.Many2one(
-        'ir.attachment',
+    l10n_sv_certificate = fields.Binary(
         string='Certificado Digital MH',
+        attachment=True,
+        groups='base.group_system',
         help='Certificado digital (.crt XML) emitido por el Ministerio de Hacienda para firma de DTE',
-        domain=[('mimetype', 'in', ['application/xml', 'text/xml'])],
+    )
+    l10n_sv_certificate_filename = fields.Char(
+        string='Nombre del certificado',
+        groups='base.group_system',
     )
 
     l10n_sv_nit_emisor = fields.Char(string='NIT Emisor (para autenticación)')
 
-    @api.model
-    def get_l10n_sv_api_config(self):
+    @api.constrains('l10n_sv_cod_estable_mh', 'l10n_sv_cod_punto_venta_mh')
+    def _check_l10n_sv_codigos_establecimiento(self):
+        for company in self:
+            if company.l10n_sv_cod_estable_mh and not re.fullmatch(r'[MBSP][0-9]{3}', company.l10n_sv_cod_estable_mh):
+                raise ValidationError(_('El código de establecimiento debe tener el formato M001, S001, B001 o P001.'))
+            if company.l10n_sv_cod_punto_venta_mh and not re.fullmatch(r'P[0-9]{3}', company.l10n_sv_cod_punto_venta_mh):
+                raise ValidationError(_('El código de punto de venta debe tener el formato P001.'))
+
+    def _get_l10n_sv_api_config(self):
         """
         Retorna la configuración de la API del MH.
         Las credenciales sensibles se almacenan en ir.config_parameter.
@@ -80,17 +94,12 @@ class ResCompany(models.Model):
             'target': 'new',
         }
 
-    def action_open_certificate_wizard(self):
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/web/binary/download_document?model=ir.attachment&id=%s' % (self.l10n_sv_certificate_id.id or 0),
-            'target': 'self',
-        }
-
     def action_test_mh_connection(self):
         self.ensure_one()
+        if not self.env.user.has_group('base.group_system'):
+            raise AccessError(_('Solo un administrador puede probar la conexión con el MH.'))
         api = self.env['l10n_sv.api']
-        config = self.get_l10n_sv_api_config()
+        config = self._get_l10n_sv_api_config()
 
         if not config['api_user'] or not config['api_password']:
             return self._test_connection_notification(
@@ -99,7 +108,7 @@ class ResCompany(models.Model):
                 _('Configure los parámetros del sistema l10n_sv.api_user_%(cid)d y l10n_sv.api_password_%(cid)d antes de probar la conexión.') % {'cid': self.id},
             )
 
-        token = api.authenticate(company=self, force_refresh=True)
+        token = api._authenticate(company=self, force_refresh=True)
         if token:
             return self._test_connection_notification(
                 True,

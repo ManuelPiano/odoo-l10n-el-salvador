@@ -14,7 +14,7 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         invoice = self._create_invoice(tipo_dte='01')
         payload = invoice.action_generate_dte_json()
         ident = payload['identificacion']
-        self.assertEqual(ident['version'], 1)
+        self.assertEqual(ident['version'], 2)
         self.assertEqual(ident['tipoDte'], '01')
         self.assertEqual(ident['ambiente'], '00')
         self.assertEqual(ident['tipoMoneda'], 'USD')
@@ -25,7 +25,7 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         invoice = self._create_invoice(tipo_dte='03', partner=self.partner)
         payload = invoice.action_generate_dte_json()
         ident = payload['identificacion']
-        self.assertEqual(ident['version'], 3)
+        self.assertEqual(ident['version'], 4)
         self.assertEqual(ident['tipoDte'], '03')
 
     def test_03_emisor_strips_dashes_from_nit(self):
@@ -34,65 +34,61 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         payload = invoice.action_generate_dte_json()
         self.assertEqual(payload['emisor']['nit'], TEST_NIT_DIGITS)
 
-    def test_04_emisor_direccion_uses_municipio_code_2digits(self):
+    def test_04_emisor_direccion_uses_municipio_and_distrito_mh(self):
         invoice = self._create_invoice()
         payload = invoice.action_generate_dte_json()
-        self.assertEqual(
-            payload['emisor']['direccion']['municipio'],
-            self.municipio.code[:2],
-        )
+        direccion = payload['emisor']['direccion']
+        self.assertEqual(direccion['departamento'], self.municipio.state_id.l10n_sv_code)
+        self.assertEqual(direccion['municipio'], '13')
+        self.assertEqual(direccion['distrito'], '01')
 
     def test_05_cuerpo_documento_has_tributos_for_iva_line(self):
         if not self.iva_13:
             self.skipTest('No se encontró el impuesto IVA 13% mapeado a tributo 20.')
-        invoice = self._create_invoice(cantidad=2, precio=100.0)
+        invoice = self._create_invoice(tipo_dte='03', cantidad=2, precio=100.0)
         payload = invoice.action_generate_dte_json()
         cuerpo = payload['cuerpoDocumento']
         self.assertEqual(len(cuerpo), 1)
         item = cuerpo[0]
         self.assertEqual(item['cantidad'], 2)
         self.assertEqual(item['ventaGravada'], 200.0)
-        self.assertIn('tributos', item)
-        iva_t = next((t for t in item['tributos'] if t['codigo'] == '20'), None)
-        self.assertIsNotNone(iva_t, 'Debe existir tributo 20 (IVA)')
+        self.assertEqual(item['tributos'], ['20'])
+        iva_t = next(t for t in payload['resumen']['tributos'] if t['codigo'] == '20')
         self.assertAlmostEqual(iva_t['valor'], 26.0, places=2)
 
-    def test_06_cuerpo_documento_v1_has_no_iva_item(self):
+    def test_06_cuerpo_documento_fcf_has_numeric_iva_item(self):
         invoice = self._create_invoice(tipo_dte='01')
         payload = invoice.action_generate_dte_json()
         item = payload['cuerpoDocumento'][0]
-        self.assertNotIn('ivaItem', item, 'v1 no debe llevar ivaItem por línea')
+        self.assertAlmostEqual(item['ivaItem'], 13.0, places=2)
 
-    def test_07_cuerpo_documento_v3_has_iva_item(self):
+    def test_07_cuerpo_documento_ccf_has_no_iva_item(self):
         if not self.iva_13:
             self.skipTest('No se encontró el impuesto IVA 13% mapeado a tributo 20.')
         invoice = self._create_invoice(tipo_dte='03', partner=self.partner)
         payload = invoice.action_generate_dte_json()
         item = payload['cuerpoDocumento'][0]
-        self.assertIn('ivaItem', item, 'v3 debe llevar ivaItem por línea')
-        self.assertEqual(item['ivaItem']['codigo'], '20')
+        self.assertNotIn('ivaItem', item)
 
-    def test_08_resumen_v1_uses_iva_perci_field(self):
+    def test_08_resumen_fcf_uses_total_iva(self):
         if not self.iva_13:
             self.skipTest('No se encontró el impuesto IVA 13% mapeado a tributo 20.')
         invoice = self._create_invoice(cantidad=1, precio=100.0)
         payload = invoice.action_generate_dte_json()
         resumen = payload['resumen']
-        self.assertIn('ivaPerci1', resumen)
-        self.assertIn('tributos', resumen)
-        iva_t = next((t for t in resumen['tributos'] if t['codigo'] == '20'), None)
-        self.assertIsNotNone(iva_t)
+        self.assertNotIn('ivaPerci', resumen)
+        self.assertAlmostEqual(resumen['totalIva'], 13.0, places=2)
+        self.assertIsNone(resumen['tributos'])
 
-    def test_09_resumen_v3_uses_iva_array(self):
+    def test_09_resumen_ccf_uses_tributos_and_iva_perci(self):
         if not self.iva_13:
             self.skipTest('No se encontró el impuesto IVA 13% mapeado a tributo 20.')
         invoice = self._create_invoice(tipo_dte='03', partner=self.partner)
         payload = invoice.action_generate_dte_json()
         resumen = payload['resumen']
-        self.assertIn('iva', resumen)
-        self.assertGreater(len(resumen['iva']), 0)
-        iva_item = resumen['iva'][0]['ivaItem']
-        self.assertEqual(iva_item['codigo'], '20')
+        self.assertEqual(resumen['ivaPerci'], 0.0)
+        self.assertNotIn('totalIva', resumen)
+        self.assertEqual([t['codigo'] for t in resumen['tributos']], ['20'])
 
     def test_10_resumen_pagos_contado(self):
         invoice = self._create_invoice(condicion='1', cantidad=1, precio=100.0)
@@ -129,50 +125,31 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         with self.assertRaises(UserError):
             invoice.action_generate_dte_json()
 
-    def test_14_extension_added_when_observaciones_set(self):
+    def test_14_observaciones_in_resumen(self):
         invoice = self._create_invoice()
         invoice.write({'l10n_sv_dte_observaciones': 'Cliente retira en tienda'})
         payload = invoice.action_generate_dte_json()
-        self.assertIn('extension', payload)
-        self.assertEqual(payload['extension']['observaciones'], 'Cliente retira en tienda')
+        self.assertNotIn('extension', payload)
+        self.assertEqual(payload['resumen']['observaciones'], 'Cliente retira en tienda')
 
-    def test_15_extension_omitted_when_no_observaciones(self):
+    def test_15_observaciones_null_when_empty(self):
         invoice = self._create_invoice()
         payload = invoice.action_generate_dte_json()
-        self.assertNotIn('extension', payload)
+        self.assertIsNone(payload['resumen']['observaciones'])
 
     def test_16_nc_includes_documento_relacionado(self):
-        ref_invoice = self._create_invoice(tipo_dte='03', partner=self.partner)
-        ref_invoice.action_post()
-        ref_invoice._ensure_dte_identifiers()
-        ref_invoice.action_generate_dte_json()
-        nc = self.env['account.move'].create({
-            'move_type': 'out_refund',
-            'company_id': self.company.id,
-            'partner_id': self.partner.id,
-            'invoice_date': '2025-01-20',
-            'currency_id': self.env.ref('base.USD').id,
-            'reversed_entry_id': ref_invoice.id,
-            'invoice_line_ids': [(0, 0, {
-                'name': 'Devolución de mercadería',
-                'quantity': 1,
-                'price_unit': 50.0,
-                'tax_ids': [(6, 0, [self.iva_13.id])] if self.iva_13 else [],
-            })],
-        })
-        nc.write({
-            'l10n_sv_dte_tipo_doc': '05',
-            'l10n_sv_dte_condicion_operacion': '1',
-        })
-        payload = nc.action_generate_dte_json()
-        self.assertIn('documentoRelacionado', payload)
+        ref_invoice = self._create_processed_ccf()
+        payload = self._create_nota('05', ref_invoice, precio=50.0).action_generate_dte_json()
         rel = payload['documentoRelacionado'][0]
-        self.assertEqual(rel['numeroDocumento'], ref_invoice.l10n_sv_dte_numero_control)
+        self.assertEqual(rel['tipoDocumento'], '03')
+        self.assertEqual(rel['tipoGeneracion'], 2)
+        self.assertEqual(rel['numeroDocumento'], ref_invoice.l10n_sv_dte_codigo_generacion)
+        self.assertEqual(rel['fechaEmision'], '2025-01-15')
 
     def test_17_fcf_does_not_include_documento_relacionado(self):
         invoice = self._create_invoice(tipo_dte='01')
         payload = invoice.action_generate_dte_json()
-        self.assertNotIn('documentoRelacionado', payload)
+        self.assertIsNone(payload['documentoRelacionado'])
 
     def test_18_dte_state_advances_to_json_generated(self):
         invoice = self._create_invoice()
@@ -191,8 +168,8 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         term = self.env['account.payment.term'].create({
             'name': '30/60',
             'line_ids': [
-                (0, 0, {'value': 'percent', 'value_amount': 50.0, 'days': 30, 'option': 'day_after_invoice_date'}),
-                (0, 0, {'value': 'percent', 'value_amount': 50.0, 'days': 60, 'option': 'day_after_invoice_date'}),
+                (0, 0, {'value': 'percent', 'value_amount': 50.0, 'nb_days': 30}),
+                (0, 0, {'value': 'percent', 'value_amount': 50.0, 'nb_days': 60}),
             ],
         })
         invoice = self._create_invoice(condicion='2', cantidad=1, precio=100.0)
@@ -202,3 +179,26 @@ class TestL10nSvDteJson(L10nSvDteTestBase):
         self.assertEqual(len(pagos), 2)
         total_pagos = sum(p['montoPago'] for p in pagos)
         self.assertAlmostEqual(total_pagos, 113.0, places=2)
+        self.assertEqual([p['periodo'] for p in pagos], [30, 60])
+        self.assertTrue(all(p['plazo'] == '01' for p in pagos))
+
+    def test_21_credito_pagos_with_fixed_amount_term(self):
+        term = self.env['account.payment.term'].create({
+            'name': '20 fijo + saldo',
+            'line_ids': [
+                (0, 0, {'value': 'fixed', 'value_amount': 20.0, 'nb_days': 0}),
+                (0, 0, {'value': 'percent', 'value_amount': 100.0, 'nb_days': 45}),
+            ],
+        })
+        invoice = self._create_invoice(condicion='2', cantidad=1, precio=100.0)
+        invoice.write({'invoice_payment_term_id': term.id})
+        pagos = invoice.action_generate_dte_json()['resumen']['pagos']
+        self.assertEqual([p['montoPago'] for p in pagos], [20.0, 93.0])
+        self.assertEqual([p['periodo'] for p in pagos], [None, 45])
+        self.assertEqual([p['plazo'] for p in pagos], [None, '01'])
+
+    def test_22_credito_without_term_single_payment(self):
+        invoice = self._create_invoice(condicion='2', cantidad=1, precio=100.0)
+        pagos = invoice.action_generate_dte_json()['resumen']['pagos']
+        self.assertEqual(len(pagos), 1)
+        self.assertAlmostEqual(pagos[0]['montoPago'], 113.0, places=2)

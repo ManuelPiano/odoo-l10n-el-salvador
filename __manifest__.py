@@ -1,10 +1,10 @@
 {
     'name': 'Localización de El Salvador - Facturación Electrónica (DTE)',
-    'version': '19.0.1.16.0',
+    'version': '18.0.1.22.0',
     'category': 'Accounting/Localizations',
     'summary': 'Facturación Electrónica DTE conforme a requerimientos del Ministerio de Hacienda de El Salvador',
     'author': 'DIAL Studio',
-    'depends': ['base', 'account'],
+    'depends': ['base', 'account', 'account_debit_note'],
     'data': [
         'data/res.country.state.csv',
         'data/l10n_sv.municipio.csv',
@@ -24,12 +24,13 @@
         'views/res_partner_views.xml',
         'views/account_move_views.xml',
         'security/ir.model.access.csv',
+        'security/l10n_sv_security.xml',
     ],
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
     'test': [],
     'external_dependencies': {
-        'python': ['requests', 'cryptography', 'qrcode'],
+        'python': ['requests', 'cryptography', 'qrcode', 'jsonschema'],
     },
 }

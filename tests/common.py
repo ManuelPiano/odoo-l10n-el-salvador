@@ -20,8 +20,8 @@ from odoo.tests import TransactionCase
 TEST_NIT = '06141406100012'
 TEST_NIT_DIGITS = TEST_NIT.replace('-', '').replace(' ', '')
 TEST_NRC = '1234567'
-TEST_COD_ESTABLE = '0001'
-TEST_COD_PUNTO_VENTA = '0001'
+TEST_COD_ESTABLE = 'M001'
+TEST_COD_PUNTO_VENTA = 'P001'
 
 
 def generate_test_keypair():
@@ -81,8 +81,15 @@ class L10nSvDteTestBase(TransactionCase):
                 limit=1,
             ).id,
             'street': 'Av. Test 123',
+            'account_fiscal_country_id': cls.env.ref('base.sv').id,
         })
+        cls.env['account.chart.template'].try_loading('generic_coa', cls.company, install_demo=False)
+        cls.company.account_fiscal_country_id = cls.env.ref('base.sv')
+        cls.env = cls.env(context=dict(cls.env.context, allowed_company_ids=[cls.company.id]))
+        cls.company = cls.company.with_env(cls.env)
         cls.municipio = cls.env['l10n_sv.municipio'].search([], limit=1)
+        cls.municipio.write({'municipio_mh': '13', 'distrito_mh': '01'})
+        cls.actividad = cls.env['l10n_sv.actividad_economica'].search([], limit=1)
         cls.company.write({'l10n_sv_municipio_id': cls.municipio.id})
         cat019 = cls.env['l10n_sv.actividad_economica'].search([], limit=1)
         if cat019:
@@ -91,14 +98,10 @@ class L10nSvDteTestBase(TransactionCase):
         if tipo_estab:
             cls.company.write({'l10n_sv_tipo_establecimiento_id': tipo_estab.id})
 
-        cls.cert_attachment = cls.env['ir.attachment'].create({
-            'name': 'test_cert.crt',
-            'datas': base64.b64encode(cls.cert_xml).decode('ascii'),
-            'mimetype': 'application/xml',
-            'res_model': 'res.company',
-            'res_id': cls.company.id,
+        cls.company.write({
+            'l10n_sv_certificate': base64.b64encode(cls.cert_xml.encode('utf-8')),
+            'l10n_sv_certificate_filename': 'test_cert.crt',
         })
-        cls.company.write({'l10n_sv_certificate_id': cls.cert_attachment.id})
 
         cls.partner = cls.env['res.partner'].create({
             'name': 'Cliente Test, S.A. de C.V.',
@@ -107,6 +110,9 @@ class L10nSvDteTestBase(TransactionCase):
             'l10n_sv_nrc': '7654321',
             'l10n_sv_nombre_comercial': 'Cliente Test',
             'l10n_sv_giro': 'Comercio',
+            'l10n_sv_cod_actividad_id': cls.actividad.id,
+            'phone': '22998877',
+            'email': 'cliente@example.com',
             'street': 'Calle Cliente 456',
             'state_id': cls.company.state_id.id,
             'l10n_sv_municipio_id': cls.municipio.id,
@@ -117,10 +123,18 @@ class L10nSvDteTestBase(TransactionCase):
             [('code', '=', '1')], limit=1,
         )
 
-        cls.iva_13 = cls.env['account.tax'].search([
-            ('l10n_sv_tributo_id.code', '=', '20'),
-            ('type_tax_use', '=', 'sale'),
-        ], limit=1)
+        cls.iva_13 = cls.env['account.tax'].create({
+            'name': 'IVA 13% Test',
+            'amount': 13.0,
+            'amount_type': 'percent',
+            'type_tax_use': 'sale',
+            'company_id': cls.company.id,
+            'tax_group_id': cls.env['account.tax.group'].create({
+                'name': 'IVA Test', 'company_id': cls.company.id, 'country_id': cls.env.ref('base.sv').id,
+            }).id,
+            'country_id': cls.env.ref('base.sv').id,
+            'l10n_sv_tributo_id': cls.env['l10n_sv.tributo'].search([('code', '=', '20')], limit=1).id,
+        })
 
     def _create_invoice(self, tipo_dte='01', cantidad=1, precio=100.0, descuento=0.0,
                         condicion='1', with_iva=True, partner=None):
@@ -144,3 +158,29 @@ class L10nSvDteTestBase(TransactionCase):
             'l10n_sv_dte_forma_pago_id': self.forma_pago.id,
         })
         return invoice
+
+    def _create_processed_ccf(self, precio=100.0):
+        invoice = self._create_invoice(tipo_dte='03', precio=precio)
+        invoice.action_post()
+        invoice.action_generate_dte_json()
+        invoice._l10n_sv_write({'l10n_sv_dte_state': 'processed', 'l10n_sv_dte_sello_recepcion': 'S' * 40})
+        return invoice
+
+    def _create_nota(self, tipo_dte, origen, precio=40.0, cantidad=1):
+        vals = {
+            'move_type': 'out_refund' if tipo_dte == '05' else 'out_invoice',
+            'company_id': self.company.id,
+            'partner_id': self.partner.id,
+            'invoice_date': '2025-01-20',
+            'currency_id': self.env.ref('base.USD').id,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Ajuste',
+                'quantity': cantidad,
+                'price_unit': precio,
+                'tax_ids': [(6, 0, [self.iva_13.id])],
+            })],
+        }
+        vals['reversed_entry_id' if tipo_dte == '05' else 'debit_origin_id'] = origen.id if origen else False
+        nota = self.env['account.move'].create(vals)
+        nota.write({'l10n_sv_dte_tipo_doc': tipo_dte})
+        return nota

@@ -1,11 +1,11 @@
-![Odoo 19.0](https://img.shields.io/badge/Odoo-19.0-714B67?style=flat-square&logo=odoo)
+![Odoo 18.0](https://img.shields.io/badge/Odoo-18.0-714B67?style=flat-square&logo=odoo)
 ![License: LGPL-3](https://img.shields.io/badge/License-LGPL--3-blue?style=flat-square)
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)
 
 # Localización de El Salvador — Facturación Electrónica (DTE)
 
-Módulo de **facturación electrónica** para Odoo 19 que implementa el
+Módulo de **facturación electrónica** para Odoo 18 que implementa el
 Documento Tributario Electrónico (DTE) conforme a los requerimientos del
 **Ministerio de Hacienda de El Salvador**.
 
@@ -42,9 +42,9 @@ Documento Tributario Electrónico (DTE) conforme a los requerimientos del
 
 | Componente | Versión |
 |------------|---------|
-| Odoo | 19.0 |
+| Odoo | 18.0 |
 | Python | 3.10+ |
-| Dependencias | `requests`, `cryptography`, `qrcode` |
+| Dependencias | `requests`, `cryptography`, `qrcode`, `jsonschema` |
 
 ## Instalación
 
@@ -62,7 +62,7 @@ parámetro `addons_path` en `odoo.conf`). Opciones:
 ### Dependencias Python
 
 ```bash
-pip install requests cryptography qrcode
+pip install requests cryptography qrcode jsonschema
 ```
 
 ### Instalación en Odoo

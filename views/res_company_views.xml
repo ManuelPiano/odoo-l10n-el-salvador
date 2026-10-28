@@ -24,8 +24,8 @@
                                 <field name="l10n_sv_correo" placeholder="facturacion@empresa.com.sv"/>
                             </group>
                             <group string="Establecimientos (CCF)">
-                                <field name="l10n_sv_cod_estable_mh" placeholder="0001"/>
-                                <field name="l10n_sv_cod_punto_venta_mh" placeholder="0001"/>
+                                <field name="l10n_sv_cod_estable_mh" placeholder="M001"/>
+                                <field name="l10n_sv_cod_punto_venta_mh" placeholder="P001"/>
                             </group>
                             <group string="Configuración API MH">
                                 <field name="l10n_sv_ambiente" widget="radio"/>
@@ -44,11 +44,13 @@
                                 <button name="action_test_mh_connection"
                                         string="Probar conexión con MH"
                                         type="object"
-                                        class="btn-secondary"/>
+                                        class="btn-secondary"
+                                        groups="base.group_system"/>
                             </group>
-                            <group string="Certificado Digital">
-                                <field name="l10n_sv_certificate_id"
-                                       placeholder="Suba el archivo .crt XML del MH"
+                            <group string="Certificado Digital" groups="base.group_system">
+                                <field name="l10n_sv_certificate_filename" invisible="1"/>
+                                <field name="l10n_sv_certificate"
+                                       filename="l10n_sv_certificate_filename"
                                        widget="binary" required="0"/>
                                 <div colspan="2" class="text-muted">
                                     <p>Suba el archivo <code>.crt</code> (XML) emitido por el Ministerio de Hacienda.</p>

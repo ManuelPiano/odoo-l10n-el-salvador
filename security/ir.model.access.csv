@@ -1,11 +1,19 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_l10n_sv_municipio,l10n_sv.municipio,model_l10n_sv_municipio,,1,1,1,1
-access_l10n_sv_actividad_economica,l10n_sv.actividad_economica,model_l10n_sv_actividad_economica,,1,1,1,1
-access_l10n_sv_tipo_establecimiento,l10n_sv.tipo_establecimiento,model_l10n_sv_tipo_establecimiento,,1,1,1,1
-access_l10n_sv_tributo,l10n_sv.tributo,model_l10n_sv_tributo,,1,1,1,1
-access_l10n_sv_forma_pago,l10n_sv.forma_pago,model_l10n_sv_forma_pago,,1,1,1,1
-access_l10n_sv_condicion_operacion,l10n_sv.condicion_operacion,model_l10n_sv_condicion_operacion,,1,1,1,1
-access_l10n_sv_tipo_documento,l10n_sv.tipo_documento,model_l10n_sv_tipo_documento,,1,1,1,1
-access_l10n_sv_api,l10n_sv.api,model_l10n_sv_api,,1,0,0,0
-access_l10n_sv_dte_log,l10n_sv.dte.log,model_l10n_sv_dte_log,,1,1,1,1
-access_l10n_sv_dte_send_wizard,l10n_sv.dte.send.wizard,model_l10n_sv_dte_send_wizard,,1,1,1,1
+access_l10n_sv_municipio_user,l10n_sv.municipio user,model_l10n_sv_municipio,base.group_user,1,0,0,0
+access_l10n_sv_municipio_manager,l10n_sv.municipio manager,model_l10n_sv_municipio,account.group_account_manager,1,1,1,1
+access_l10n_sv_actividad_economica_user,l10n_sv.actividad_economica user,model_l10n_sv_actividad_economica,base.group_user,1,0,0,0
+access_l10n_sv_actividad_economica_manager,l10n_sv.actividad_economica manager,model_l10n_sv_actividad_economica,account.group_account_manager,1,1,1,1
+access_l10n_sv_tipo_establecimiento_user,l10n_sv.tipo_establecimiento user,model_l10n_sv_tipo_establecimiento,base.group_user,1,0,0,0
+access_l10n_sv_tipo_establecimiento_manager,l10n_sv.tipo_establecimiento manager,model_l10n_sv_tipo_establecimiento,account.group_account_manager,1,1,1,1
+access_l10n_sv_tributo_user,l10n_sv.tributo user,model_l10n_sv_tributo,base.group_user,1,0,0,0
+access_l10n_sv_tributo_manager,l10n_sv.tributo manager,model_l10n_sv_tributo,account.group_account_manager,1,1,1,1
+access_l10n_sv_forma_pago_user,l10n_sv.forma_pago user,model_l10n_sv_forma_pago,base.group_user,1,0,0,0
+access_l10n_sv_forma_pago_manager,l10n_sv.forma_pago manager,model_l10n_sv_forma_pago,account.group_account_manager,1,1,1,1
+access_l10n_sv_condicion_operacion_user,l10n_sv.condicion_operacion user,model_l10n_sv_condicion_operacion,base.group_user,1,0,0,0
+access_l10n_sv_condicion_operacion_manager,l10n_sv.condicion_operacion manager,model_l10n_sv_condicion_operacion,account.group_account_manager,1,1,1,1
+access_l10n_sv_tipo_documento_user,l10n_sv.tipo_documento user,model_l10n_sv_tipo_documento,base.group_user,1,0,0,0
+access_l10n_sv_tipo_documento_manager,l10n_sv.tipo_documento manager,model_l10n_sv_tipo_documento,account.group_account_manager,1,1,1,1
+access_l10n_sv_dte_log_invoice,l10n_sv.dte.log invoice,model_l10n_sv_dte_log,account.group_account_invoice,1,0,0,0
+access_l10n_sv_dte_log_system,l10n_sv.dte.log system,model_l10n_sv_dte_log,base.group_system,1,1,1,1
+access_l10n_sv_dte_send_wizard_invoice,l10n_sv.dte.send.wizard invoice,model_l10n_sv_dte_send_wizard,account.group_account_invoice,1,1,1,1
+access_l10n_sv_dte_send_wizard_line_invoice,l10n_sv.dte.send.wizard.line invoice,model_l10n_sv_dte_send_wizard_line,account.group_account_invoice,1,1,1,1

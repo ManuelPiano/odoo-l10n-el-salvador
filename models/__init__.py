@@ -11,5 +11,6 @@ from . import l10n_sv_tipo_documento
 from . import l10n_sv_api
 from . import l10n_sv_signer
 from . import l10n_sv_dte_log
+from . import l10n_sv_dte_schema
 from . import l10n_sv_dte_send_wizard
 from . import account_move

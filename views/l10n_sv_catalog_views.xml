@@ -211,6 +211,26 @@
         </record>
 
         <!-- Menú raíz de DTE -->
+        <record id="view_l10n_sv_municipio_list" model="ir.ui.view">
+            <field name="name">l10n_sv.municipio.list</field>
+            <field name="model">l10n_sv.municipio</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="state_id"/>
+                    <field name="municipio_mh"/>
+                    <field name="distrito_mh"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_l10n_sv_municipio" model="ir.actions.act_window">
+            <field name="name">Municipios y Distritos (CAT-012/013)</field>
+            <field name="res_model">l10n_sv.municipio</field>
+            <field name="view_mode">list</field>
+        </record>
+
         <menuitem id="menu_l10n_sv_root" name="Facturación SV" sequence="99"/>
         <menuitem id="menu_l10n_sv_catalogos" name="Catálogos MH" parent="menu_l10n_sv_root" sequence="10"/>
         <menuitem id="menu_l10n_sv_actividad_economica" name="Actividades Económicas (CAT-019)" parent="menu_l10n_sv_catalogos" action="action_l10n_sv_actividad_economica" sequence="10"/>
@@ -219,6 +239,7 @@
         <menuitem id="menu_l10n_sv_forma_pago" name="Formas de Pago (CAT-017)" parent="menu_l10n_sv_catalogos" action="action_l10n_sv_forma_pago" sequence="35"/>
         <menuitem id="menu_l10n_sv_condicion_operacion" name="Condiciones de Operación (CAT-016)" parent="menu_l10n_sv_catalogos" action="action_l10n_sv_condicion_operacion" sequence="40"/>
         <menuitem id="menu_l10n_sv_tipo_documento" name="Tipos de Documento (CAT-022)" parent="menu_l10n_sv_catalogos" action="action_l10n_sv_tipo_documento" sequence="50"/>
+        <menuitem id="menu_l10n_sv_municipio" name="Municipios y Distritos (CAT-012/013)" parent="menu_l10n_sv_catalogos" action="action_l10n_sv_municipio" sequence="60"/>
 
     </data>
 </odoo>

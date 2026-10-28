@@ -31,7 +31,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
         inv.action_sign_dte()
         self.assertEqual(inv.l10n_sv_dte_state, 'signed')
         self.assertTrue(inv.l10n_sv_dte_signed and len(inv.l10n_sv_dte_signed.split('.')) == 3)
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_ok('SELLO_HAPPY')):
             inv.action_send_dte()
         self.assertEqual(inv.l10n_sv_dte_state, 'processed')
@@ -47,7 +47,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
         inv = self._create_invoice()
         inv.action_generate_dte_json()
         inv.action_sign_dte()
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_rejected()):
             inv.action_send_dte()
         self.assertEqual(inv.l10n_sv_dte_state, 'rejected')
@@ -61,7 +61,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
         inv = self._create_invoice()
         inv.action_generate_dte_json()
         inv.action_sign_dte()
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           side_effect=[mock_mh_rejected(), mock_mh_ok('SELLO_RESEND')]):
             inv.action_send_dte()
             self.assertEqual(inv.l10n_sv_dte_state, 'rejected')
@@ -90,7 +90,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
             'l10n_sv_dte_send_attempts': 0,
             'l10n_sv_dte_signed': 'h.p.s',
         })
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_ok('SELLO_CONT')):
             inv.action_resend_dte()
         self.assertFalse(inv.l10n_sv_dte_contingencia)
@@ -126,7 +126,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
             'l10n_sv_dte_sello_recepcion': 'SELLO_INV',
             'l10n_sv_dte_codigo_generacion': 'ABCD-1234',
         })
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'invalidate_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_invalidate_dte',
                           return_value={'status': 'OK', 'body': {'estado': 'PROCESADO'}}):
             inv.action_invalidate_dte()
         self.assertEqual(inv.l10n_sv_dte_state, 'invalidated')
@@ -153,7 +153,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
         for inv in invs:
             inv.action_generate_dte_json()
             inv.action_sign_dte()
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_ok('WIZARD')):
             wizard = self.env['l10n_sv.dte.send.wizard'].create({
                 'move_ids': [(6, 0, [i.id for i in invs])],
@@ -174,7 +174,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
             'l10n_sv_dte_state': 'processed',
             'l10n_sv_dte_sello_recepcion': 'X',
         })
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_ok('WIZARD2')):
             wizard = self.env['l10n_sv.dte.send.wizard'].create({
                 'move_ids': [(6, 0, [inv_pending.id, inv_processed.id])],
@@ -191,7 +191,7 @@ class TestL10nSvDteFlow(L10nSvDteTestBase):
             'l10n_sv_dte_send_attempts': 0,
             'l10n_sv_dte_signed': 'h.p.s',
         })
-        with patch.object(self.env['l10n_sv.api'].sudo().__class__, 'send_dte',
+        with patch.object(self.env['l10n_sv.api'].sudo().__class__, '_send_dte',
                           return_value=mock_mh_ok('CRON')):
             self.env['l10n_sv.api'].cron_process_contingencia()
         log = self.env['l10n_sv.dte.log'].search([

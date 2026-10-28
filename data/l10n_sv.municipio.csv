@@ -1,264 +1,263 @@
-id,name,code,state_id/id
-mun_sv_0101,Ahuachapán,0101,state_sv_ah
-mun_sv_0102,Apaneca,0102,state_sv_ah
-mun_sv_0103,Atiquizaya,0103,state_sv_ah
-mun_sv_0104,Concepcion de Ataco,0104,state_sv_ah
-mun_sv_0105,El Refugio,0105,state_sv_ah
-mun_sv_0106,Guaymango,0106,state_sv_ah
-mun_sv_0107,Jujutla,0107,state_sv_ah
-mun_sv_0108,San Francisco Menendez,0108,state_sv_ah
-mun_sv_0109,San Lorenzo,0109,state_sv_ah
-mun_sv_0110,San Pedro Puxtla,0110,state_sv_ah
-mun_sv_0111,Tacuba,0111,state_sv_ah
-mun_sv_0112,Turin,0112,state_sv_ah
-mun_sv_0201,Santa Ana,0201,state_sv_sa
-mun_sv_0202,Candelaria de la Frontera,0202,state_sv_sa
-mun_sv_0203,Chalchuapa,0203,state_sv_sa
-mun_sv_0204,Coatepeque,0204,state_sv_sa
-mun_sv_0205,El Congo,0205,state_sv_sa
-mun_sv_0206,El Porvenir,0206,state_sv_sa
-mun_sv_0207,Masahuat,0207,state_sv_sa
-mun_sv_0208,Metapan,0208,state_sv_sa
-mun_sv_0209,San Antonio Pajonal,0209,state_sv_sa
-mun_sv_0210,San Sebastian Salitrillo,0210,state_sv_sa
-mun_sv_0211,Santa Rosa Guachipilin,0211,state_sv_sa
-mun_sv_0212,Santiago de la Frontera,0212,state_sv_sa
-mun_sv_0213,Texistepeque,0213,state_sv_sa
-mun_sv_0301,Sonsonate,0301,state_sv_so
-mun_sv_0302,Acajutla,0302,state_sv_so
-mun_sv_0303,Armenia,0303,state_sv_so
-mun_sv_0304,Caluco,0304,state_sv_so
-mun_sv_0305,Cuisnahuat,0305,state_sv_so
-mun_sv_0306,Santa Isabel Ishuatan,0306,state_sv_so
-mun_sv_0307,Izalco,0307,state_sv_so
-mun_sv_0308,Juayua,0308,state_sv_so
-mun_sv_0309,Nahuizalco,0309,state_sv_so
-mun_sv_0310,Nahulingo,0310,state_sv_so
-mun_sv_0311,Salcoatitan,0311,state_sv_so
-mun_sv_0312,San Antonio del Monte,0312,state_sv_so
-mun_sv_0313,San Julian,0313,state_sv_so
-mun_sv_0314,Santa Catarina Masahuat,0314,state_sv_so
-mun_sv_0315,Santo Domingo de Guzman,0315,state_sv_so
-mun_sv_0316,Sonzacate,0316,state_sv_so
-mun_sv_0401,Chalatenango,0401,state_sv_ch
-mun_sv_0402,Agua Caliente,0402,state_sv_ch
-mun_sv_0403,Arcatao,0403,state_sv_ch
-mun_sv_0404,Azacualpa,0404,state_sv_ch
-mun_sv_0405,Citalala,0405,state_sv_ch
-mun_sv_0406,Comalapa,0406,state_sv_ch
-mun_sv_0407,Concepcion Quezaltepeque,0407,state_sv_ch
-mun_sv_0408,Dulce Nombre de Maria,0408,state_sv_ch
-mun_sv_0409,El Carrizal,0409,state_sv_ch
-mun_sv_0410,El Paraiso,0410,state_sv_ch
-mun_sv_0411,La Laguna,0411,state_sv_ch
-mun_sv_0412,La Palma,0412,state_sv_ch
-mun_sv_0413,La Reina,0413,state_sv_ch
-mun_sv_0414,Las Vueltas,0414,state_sv_ch
-mun_sv_0415,Nombre de Jesus,0415,state_sv_ch
-mun_sv_0416,Nueva Concepcion,0416,state_sv_ch
-mun_sv_0417,Nueva Trinidad,0417,state_sv_ch
-mun_sv_0418,Ojos de Agua,0418,state_sv_ch
-mun_sv_0419,Potonico,0419,state_sv_ch
-mun_sv_0420,San Antonio de la Cruz,0420,state_sv_ch
-mun_sv_0421,San Antonio Los Ranchos,0421,state_sv_ch
-mun_sv_0422,San Fernando,0422,state_sv_ch
-mun_sv_0423,San Francisco Lempa,0423,state_sv_ch
-mun_sv_0424,San Francisco Morazan,0424,state_sv_ch
-mun_sv_0425,San Ignacio,0425,state_sv_ch
-mun_sv_0426,San Isidro Labrador,0426,state_sv_ch
-mun_sv_0427,San Luis del Carmen,0427,state_sv_ch
-mun_sv_0428,San Miguel de Mercedes,0428,state_sv_ch
-mun_sv_0429,San Rafael,0429,state_sv_ch
-mun_sv_0430,Santa Rita,0430,state_sv_ch
-mun_sv_0431,Tejutla,0431,state_sv_ch
-mun_sv_0501,Santa Tecla (Nueva San Salvador),0501,state_sv_ll
-mun_sv_0502,Antiguo Cuscatlan,0502,state_sv_ll
-mun_sv_0503,Cara Sucia,0503,state_sv_ll
-mun_sv_0504,Ciudad Arce,0504,state_sv_ll
-mun_sv_0505,Colon,0505,state_sv_ll
-mun_sv_0506,Comasagua,0506,state_sv_ll
-mun_sv_0507,Chiltiupan,0507,state_sv_ll
-mun_sv_0508,Huizucar,0508,state_sv_ll
-mun_sv_0509,Jayaque,0509,state_sv_ll
-mun_sv_0510,Jicalapa,0510,state_sv_ll
-mun_sv_0511,La Libertad,0511,state_sv_ll
-mun_sv_0512,Nuevo Cuscatlan,0512,state_sv_ll
-mun_sv_0513,Quezaltepeque,0513,state_sv_ll
-mun_sv_0514,Sagrera,0514,state_sv_ll
-mun_sv_0515,San Juan Opico,0515,state_sv_ll
-mun_sv_0516,San Matias,0516,state_sv_ll
-mun_sv_0517,San Pablo Tacachico,0517,state_sv_ll
-mun_sv_0518,Sacacoyo,0518,state_sv_ll
-mun_sv_0519,Talnique,0519,state_sv_ll
-mun_sv_0520,Tamanique,0520,state_sv_ll
-mun_sv_0521,Teotepeque,0521,state_sv_ll
-mun_sv_0522,Tepecoyo,0522,state_sv_ll
-mun_sv_0523,Zaragoza,0523,state_sv_ll
-mun_sv_0601,San Salvador,0601,state_sv_ss
-mun_sv_0602,Aguilares,0602,state_sv_ss
-mun_sv_0603,Apopa,0603,state_sv_ss
-mun_sv_0604,Ayutuxtepeque,0604,state_sv_ss
-mun_sv_0605,Cuscatancingo,0605,state_sv_ss
-mun_sv_0606,El Paisnal,0606,state_sv_ss
-mun_sv_0607,Guazapa,0607,state_sv_ss
-mun_sv_0608,Ilopango,0608,state_sv_ss
-mun_sv_0609,Mejicanos,0609,state_sv_ss
-mun_sv_0610,Nejapa,0610,state_sv_ss
-mun_sv_0611,Panchimalco,0611,state_sv_ss
-mun_sv_0612,Rosario de Mora,0612,state_sv_ss
-mun_sv_0613,San Marcos,0613,state_sv_ss
-mun_sv_0614,San Martin,0614,state_sv_ss
-mun_sv_0615,Santiago Texacuangos,0615,state_sv_ss
-mun_sv_0616,Santo Tomas,0616,state_sv_ss
-mun_sv_0617,Soyapango,0617,state_sv_ss
-mun_sv_0618,Tonacatepeque,0618,state_sv_ss
-mun_sv_0619,Ciudad Delgado,0619,state_sv_ss
-mun_sv_0701,Cojutepeque,0701,state_sv_cu
-mun_sv_0702,Candelaria,0702,state_sv_cu
-mun_sv_0703,El Carmen,0703,state_sv_cu
-mun_sv_0704,El Rosario,0704,state_sv_cu
-mun_sv_0705,Monte San Juan,0705,state_sv_cu
-mun_sv_0706,Oratorio de Concepcion,0706,state_sv_cu
-mun_sv_0707,San Bartolome Perulapia,0707,state_sv_cu
-mun_sv_0708,San Cristobal,0708,state_sv_cu
-mun_sv_0709,San Jose Guayabal,0709,state_sv_cu
-mun_sv_0710,San Pedro Perulapan,0710,state_sv_cu
-mun_sv_0711,San Ramon,0711,state_sv_cu
-mun_sv_0712,Santa Cruz Analquito,0712,state_sv_cu
-mun_sv_0713,Santa Cruz Michapa,0713,state_sv_cu
-mun_sv_0714,Suchitoto,0714,state_sv_cu
-mun_sv_0715,San Isidro,0715,state_sv_cu
-mun_sv_0801,Zacatecoluca,0801,state_sv_pa
-mun_sv_0802,Cuyultitan,0802,state_sv_pa
-mun_sv_0803,El Rosario,0803,state_sv_pa
-mun_sv_0804,Jerusalen,0804,state_sv_pa
-mun_sv_0805,Mercedes La Ceiba,0805,state_sv_pa
-mun_sv_0806,Olocuilta,0806,state_sv_pa
-mun_sv_0807,Paraiso de Osorio,0807,state_sv_pa
-mun_sv_0808,San Antonio Masahuat,0808,state_sv_pa
-mun_sv_0809,San Emigdio,0809,state_sv_pa
-mun_sv_0810,San Francisco Chinameca,0810,state_sv_pa
-mun_sv_0811,San Juan Nonualco,0811,state_sv_pa
-mun_sv_0812,San Juan Talpa,0812,state_sv_pa
-mun_sv_0813,San Juan Tepezontes,0813,state_sv_pa
-mun_sv_0814,San Luis La Herradura,0814,state_sv_pa
-mun_sv_0815,San Luis Talpa,0815,state_sv_pa
-mun_sv_0816,San Miguel Tepezontes,0816,state_sv_pa
-mun_sv_0817,San Pedro Masahuat,0817,state_sv_pa
-mun_sv_0818,San Pedro Nonualco,0818,state_sv_pa
-mun_sv_0819,San Rafael Obrajuelo,0819,state_sv_pa
-mun_sv_0820,Santa Maria Ostuma,0820,state_sv_pa
-mun_sv_0821,Santiago Nonualco,0821,state_sv_pa
-mun_sv_0822,Tapalhuaca,0822,state_sv_pa
-mun_sv_0823,San Juan Lislique,0823,state_sv_pa
-mun_sv_0824,El Rosario Cuyultitan,0824,state_sv_pa
-mun_sv_0901,Sensuntepeque,0901,state_sv_ca
-mun_sv_0902,Cinquera,0902,state_sv_ca
-mun_sv_0903,Dolores,0903,state_sv_ca
-mun_sv_0904,Guacotecti,0904,state_sv_ca
-mun_sv_0905,Ilobasco,0905,state_sv_ca
-mun_sv_0906,Jutiapa,0906,state_sv_ca
-mun_sv_0907,San Isidro,0907,state_sv_ca
-mun_sv_0908,Tejutepeque,0908,state_sv_ca
-mun_sv_0909,Victoria,0909,state_sv_ca
-mun_sv_1001,San Vicente,1001,state_sv_sv
-mun_sv_1002,Apastepeque,1002,state_sv_sv
-mun_sv_1003,Guadalupe,1003,state_sv_sv
-mun_sv_1004,San Cayetano Istepeque,1004,state_sv_sv
-mun_sv_1005,Santa Clara,1005,state_sv_sv
-mun_sv_1006,Santo Domingo,1006,state_sv_sv
-mun_sv_1007,San Esteban Catarina,1007,state_sv_sv
-mun_sv_1008,San Ildefonso,1008,state_sv_sv
-mun_sv_1009,San Lorenzo,1009,state_sv_sv
-mun_sv_1010,San Sebastian,1010,state_sv_sv
-mun_sv_1011,Santa Teresita,1011,state_sv_sv
-mun_sv_1012,Tepetitan,1012,state_sv_sv
-mun_sv_1013,Verapaz,1013,state_sv_sv
-mun_sv_1101,Usulutan,1101,state_sv_us
-mun_sv_1102,Alegria,1102,state_sv_us
-mun_sv_1103,Berlin,1103,state_sv_us
-mun_sv_1104,California,1104,state_sv_us
-mun_sv_1105,Concepcion Batres,1105,state_sv_us
-mun_sv_1106,El Triunfo,1106,state_sv_us
-mun_sv_1107,Ereguayquin,1107,state_sv_us
-mun_sv_1108,Estanzuelas,1108,state_sv_us
-mun_sv_1109,Jiquilisco,1109,state_sv_us
-mun_sv_1110,Jucuapa,1110,state_sv_us
-mun_sv_1111,Jucuaran,1111,state_sv_us
-mun_sv_1112,Mercedes Umana,1112,state_sv_us
-mun_sv_1113,Nueva Granada,1113,state_sv_us
-mun_sv_1114,Ozatlan,1114,state_sv_us
-mun_sv_1115,Puerto El Triunfo,1115,state_sv_us
-mun_sv_1116,San Agustin,1116,state_sv_us
-mun_sv_1117,San Buenaventura,1117,state_sv_us
-mun_sv_1118,San Dionisio,1118,state_sv_us
-mun_sv_1119,San Francisco Javier,1119,state_sv_us
-mun_sv_1120,Santa Elena,1120,state_sv_us
-mun_sv_1121,Santa Maria,1121,state_sv_us
-mun_sv_1122,Santiago de Maria,1122,state_sv_us
-mun_sv_1123,Tecapan,1123,state_sv_us
-mun_sv_1201,San Miguel,1201,state_sv_sm
-mun_sv_1202,Carolina,1202,state_sv_sm
-mun_sv_1203,Chapeltique,1203,state_sv_sm
-mun_sv_1204,Chinameca,1204,state_sv_sm
-mun_sv_1205,Chirilagua,1205,state_sv_sm
-mun_sv_1206,Ciudad Barrios,1206,state_sv_sm
-mun_sv_1207,Comacaran,1207,state_sv_sm
-mun_sv_1208,El Transito,1208,state_sv_sm
-mun_sv_1209,Lolotique,1209,state_sv_sm
-mun_sv_1210,Moncagua,1210,state_sv_sm
-mun_sv_1211,Nueva Guadalupe,1211,state_sv_sm
-mun_sv_1212,Nuevo Eden de San Juan,1212,state_sv_sm
-mun_sv_1213,Quelepa,1213,state_sv_sm
-mun_sv_1214,San Antonio,1214,state_sv_sm
-mun_sv_1215,San Gerardo,1215,state_sv_sm
-mun_sv_1216,San Jorge,1216,state_sv_sm
-mun_sv_1217,San Luis de la Reina,1217,state_sv_sm
-mun_sv_1218,San Rafael Oriente,1218,state_sv_sm
-mun_sv_1219,Sesori,1219,state_sv_sm
-mun_sv_1220,Uluazapa,1220,state_sv_sm
-mun_sv_1301,San Francisco Gotera,1301,state_sv_mo
-mun_sv_1302,Arambala,1302,state_sv_mo
-mun_sv_1303,Cacaopera,1303,state_sv_mo
-mun_sv_1304,Chilanga,1304,state_sv_mo
-mun_sv_1305,Corinto,1305,state_sv_mo
-mun_sv_1306,Delicias de Concepcion,1306,state_sv_mo
-mun_sv_1307,El Divisadero,1307,state_sv_mo
-mun_sv_1308,El Rosario,1308,state_sv_mo
-mun_sv_1309,Gualococti,1309,state_sv_mo
-mun_sv_1310,Guatajiagua,1310,state_sv_mo
-mun_sv_1311,Joateca,1311,state_sv_mo
-mun_sv_1312,Jocoaitique,1312,state_sv_mo
-mun_sv_1313,Jocoro,1313,state_sv_mo
-mun_sv_1314,Lolotiquillo,1314,state_sv_mo
-mun_sv_1315,Meanguera,1315,state_sv_mo
-mun_sv_1316,Osicala,1316,state_sv_mo
-mun_sv_1317,Perquin,1317,state_sv_mo
-mun_sv_1318,San Carlos,1318,state_sv_mo
-mun_sv_1319,San Fernando,1319,state_sv_mo
-mun_sv_1320,San Isidro,1320,state_sv_mo
-mun_sv_1321,San Simon,1321,state_sv_mo
-mun_sv_1322,Sensembra,1322,state_sv_mo
-mun_sv_1323,Sociedad,1323,state_sv_mo
-mun_sv_1324,Torola,1324,state_sv_mo
-mun_sv_1325,Yamabal,1325,state_sv_mo
-mun_sv_1326,Yoloaiquin,1326,state_sv_mo
-mun_sv_1401,La Union,1401,state_sv_lu
-mun_sv_1402,Anamoros,1402,state_sv_lu
-mun_sv_1403,Bolivar,1403,state_sv_lu
-mun_sv_1404,Concepcion de Oriente,1404,state_sv_lu
-mun_sv_1405,Conchagua,1405,state_sv_lu
-mun_sv_1406,El Carmen,1406,state_sv_lu
-mun_sv_1407,El Sauce,1407,state_sv_lu
-mun_sv_1408,Intipuca,1408,state_sv_lu
-mun_sv_1409,Lislique,1409,state_sv_lu
-mun_sv_1410,Llano El Coyol,1410,state_sv_lu
-mun_sv_1411,Meanguera del Golfo,1411,state_sv_lu
-mun_sv_1412,Nueva Esparta,1412,state_sv_lu
-mun_sv_1413,Pasaquina,1413,state_sv_lu
-mun_sv_1414,Poloros,1414,state_sv_lu
-mun_sv_1415,San Alejo,1415,state_sv_lu
-mun_sv_1416,San Jose La Fuente,1416,state_sv_lu
-mun_sv_1417,Santa Rosa de Lima,1417,state_sv_lu
-mun_sv_1418,Yayantique,1418,state_sv_lu
-mun_sv_1419,Yucuaiquin,1419,state_sv_lu
+id,name,code,state_id/id,municipio_mh,distrito_mh
+distrito_sv_0101,Ahuachapán,0101,state_sv_ah,14,01
+distrito_sv_0102,Apaneca,0102,state_sv_ah,14,02
+distrito_sv_0103,Atiquizaya,0103,state_sv_ah,13,03
+distrito_sv_0104,Concepción de Ataco,0104,state_sv_ah,14,04
+distrito_sv_0105,El Refugio,0105,state_sv_ah,13,05
+distrito_sv_0106,Guaymango,0106,state_sv_ah,15,06
+distrito_sv_0107,Jujutla,0107,state_sv_ah,15,07
+distrito_sv_0108,San Francisco Menéndez,0108,state_sv_ah,15,08
+distrito_sv_0109,San Lorenzo,0109,state_sv_ah,13,09
+distrito_sv_0110,San Pedro Puxtla,0110,state_sv_ah,15,10
+distrito_sv_0111,Tacuba,0111,state_sv_ah,14,11
+distrito_sv_0112,Turín,0112,state_sv_ah,13,12
+distrito_sv_0201,Santiago de la Frontera,0201,state_sv_sa,17,01
+distrito_sv_0202,Coatepeque,0202,state_sv_sa,16,02
+distrito_sv_0203,Chalchuapa,0203,state_sv_sa,17,03
+distrito_sv_0204,El Congo,0204,state_sv_sa,16,04
+distrito_sv_0205,El Porvenir,0205,state_sv_sa,17,05
+distrito_sv_0206,Masahuat,0206,state_sv_sa,14,06
+distrito_sv_0207,Metapán,0207,state_sv_sa,14,07
+distrito_sv_0208,San Antonio Pajonal,0208,state_sv_sa,17,08
+distrito_sv_0209,San Sebastián Salitrillo,0209,state_sv_sa,17,09
+distrito_sv_0210,Santa Ana,0210,state_sv_sa,15,10
+distrito_sv_0211,Santa Rosa Guachipilín,0211,state_sv_sa,14,11
+distrito_sv_0212,Stgo D La Front,0212,state_sv_sa,17,12
+distrito_sv_0213,Texistepeque,0213,state_sv_sa,14,13
+distrito_sv_0301,Acajutla,0301,state_sv_so,20,01
+distrito_sv_0302,Armenia,0302,state_sv_so,19,02
+distrito_sv_0303,Caluco,0303,state_sv_so,19,03
+distrito_sv_0304,Cuisnahuat,0304,state_sv_so,19,04
+distrito_sv_0305,Santa Isabel Ishuatán,0305,state_sv_so,19,05
+distrito_sv_0306,Izalco,0306,state_sv_so,19,06
+distrito_sv_0307,Juayúa,0307,state_sv_so,17,07
+distrito_sv_0308,Nahuizalco,0308,state_sv_so,17,08
+distrito_sv_0309,Nahulingo,0309,state_sv_so,18,09
+distrito_sv_0310,Salcoatitán,0310,state_sv_so,17,10
+distrito_sv_0311,San Antonio del Monte,0311,state_sv_so,18,11
+distrito_sv_0312,San Julián,0312,state_sv_so,19,12
+distrito_sv_0313,Santa Catarina Masahuat,0313,state_sv_so,17,13
+distrito_sv_0314,Santo Domingo de Guzmán,0314,state_sv_so,18,14
+distrito_sv_0315,Sonsonate,0315,state_sv_so,18,15
+distrito_sv_0316,Sonzacate,0316,state_sv_so,18,16
+distrito_sv_0401,Agua Caliente,0401,state_sv_ch,35,01
+distrito_sv_0402,Arcatao,0402,state_sv_ch,36,02
+distrito_sv_0403,Azacualpa,0403,state_sv_ch,36,03
+distrito_sv_0404,Citalá,0404,state_sv_ch,34,04
+distrito_sv_0405,Comalapa,0405,state_sv_ch,36,05
+distrito_sv_0406,Concepción Quezaltepeque,0406,state_sv_ch,36,06
+distrito_sv_0407,Chalatenango,0407,state_sv_ch,36,07
+distrito_sv_0408,Dulce Nombre de María,0408,state_sv_ch,35,08
+distrito_sv_0409,El Carrizal,0409,state_sv_ch,36,09
+distrito_sv_0410,El Paraíso,0410,state_sv_ch,35,10
+distrito_sv_0411,La Laguna,0411,state_sv_ch,36,11
+distrito_sv_0412,La Palma,0412,state_sv_ch,34,12
+distrito_sv_0413,La Reina,0413,state_sv_ch,35,13
+distrito_sv_0414,Las Vueltas,0414,state_sv_ch,36,14
+distrito_sv_0415,Nombre de Jesús,0415,state_sv_ch,36,15
+distrito_sv_0416,Nueva Concepción,0416,state_sv_ch,35,16
+distrito_sv_0417,Nueva Trinidad,0417,state_sv_ch,36,17
+distrito_sv_0418,Ojos de Agua,0418,state_sv_ch,36,18
+distrito_sv_0419,Potonico,0419,state_sv_ch,36,19
+distrito_sv_0420,San Antonio de La Cruz,0420,state_sv_ch,36,20
+distrito_sv_0421,San Antonio Los Ranchos,0421,state_sv_ch,36,21
+distrito_sv_0422,San Fernando,0422,state_sv_ch,35,22
+distrito_sv_0423,San Francisco Lempa,0423,state_sv_ch,36,23
+distrito_sv_0424,San Francisco Morazán,0424,state_sv_ch,35,24
+distrito_sv_0425,San Ignacio,0425,state_sv_ch,34,25
+distrito_sv_0426,San Isidro Labrador,0426,state_sv_ch,36,26
+distrito_sv_0427,San José Cancasque,0427,state_sv_ch,36,27
+distrito_sv_0428,San José Las Flores,0428,state_sv_ch,36,28
+distrito_sv_0429,San Luis del Carmen,0429,state_sv_ch,36,29
+distrito_sv_0430,San Miguel de Mercedes,0430,state_sv_ch,36,30
+distrito_sv_0431,San Rafael,0431,state_sv_ch,35,31
+distrito_sv_0432,Santa Rita,0432,state_sv_ch,35,32
+distrito_sv_0433,Tejutla,0433,state_sv_ch,35,33
+distrito_sv_0501,Antiguo Cuscatlán,0501,state_sv_ll,26,01
+distrito_sv_0502,Ciudad Arce,0502,state_sv_ll,24,02
+distrito_sv_0503,Colón,0503,state_sv_ll,25,03
+distrito_sv_0504,Comasagua,0504,state_sv_ll,28,04
+distrito_sv_0505,Chiltiupán,0505,state_sv_ll,27,05
+distrito_sv_0506,Huizúcar,0506,state_sv_ll,26,06
+distrito_sv_0507,Jayaque,0507,state_sv_ll,25,07
+distrito_sv_0508,Jicalapa,0508,state_sv_ll,27,08
+distrito_sv_0509,La Libertad,0509,state_sv_ll,27,09
+distrito_sv_0510,Nuevo Cuscatlán,0510,state_sv_ll,26,10
+distrito_sv_0511,Santa Tecla,0511,state_sv_ll,28,11
+distrito_sv_0512,Quezaltepeque,0512,state_sv_ll,23,12
+distrito_sv_0513,Sacacoyo,0513,state_sv_ll,25,13
+distrito_sv_0514,San José Villanueva,0514,state_sv_ll,26,14
+distrito_sv_0515,San Juan Opico,0515,state_sv_ll,24,15
+distrito_sv_0516,San Matías,0516,state_sv_ll,23,16
+distrito_sv_0517,San Pablo Tacachico,0517,state_sv_ll,23,17
+distrito_sv_0518,Tamanique,0518,state_sv_ll,27,18
+distrito_sv_0519,Talnique,0519,state_sv_ll,25,19
+distrito_sv_0520,Teotepeque,0520,state_sv_ll,27,20
+distrito_sv_0521,Tepecoyo,0521,state_sv_ll,25,21
+distrito_sv_0522,Zaragoza,0522,state_sv_ll,26,22
+distrito_sv_0601,Aguilares,0601,state_sv_ss,20,01
+distrito_sv_0602,Apopa,0602,state_sv_ss,21,02
+distrito_sv_0603,Ayutuxtepeque,0603,state_sv_ss,23,03
+distrito_sv_0604,Cuscatancingo,0604,state_sv_ss,23,04
+distrito_sv_0605,El Paisnal,0605,state_sv_ss,20,05
+distrito_sv_0606,Guazapa,0606,state_sv_ss,20,06
+distrito_sv_0607,Ilopango,0607,state_sv_ss,22,07
+distrito_sv_0608,Mejicanos,0608,state_sv_ss,23,08
+distrito_sv_0609,Nejapa,0609,state_sv_ss,21,09
+distrito_sv_0610,Panchimalco,0610,state_sv_ss,24,10
+distrito_sv_0611,Rosario de Mora,0611,state_sv_ss,24,11
+distrito_sv_0612,San Marcos,0612,state_sv_ss,24,12
+distrito_sv_0613,San Martín,0613,state_sv_ss,22,13
+distrito_sv_0614,San Salvador,0614,state_sv_ss,23,14
+distrito_sv_0615,Santiago Texacuangos,0615,state_sv_ss,24,15
+distrito_sv_0616,Santo Tomás,0616,state_sv_ss,24,16
+distrito_sv_0617,Soyapango,0617,state_sv_ss,22,17
+distrito_sv_0618,Tonacatepeque,0618,state_sv_ss,22,18
+distrito_sv_0619,Ciudad Delgado,0619,state_sv_ss,23,19
+distrito_sv_0701,Candelaria,0701,state_sv_cu,18,01
+distrito_sv_0702,Cojutepeque,0702,state_sv_cu,18,02
+distrito_sv_0703,El Carmen,0703,state_sv_cu,18,03
+distrito_sv_0704,El Rosario,0704,state_sv_cu,18,04
+distrito_sv_0705,Monte San Juan,0705,state_sv_cu,18,05
+distrito_sv_0706,Oratorio de Concepción,0706,state_sv_cu,17,06
+distrito_sv_0707,San Bartolomé Perulapía,0707,state_sv_cu,17,07
+distrito_sv_0708,San Cristóbal,0708,state_sv_cu,18,08
+distrito_sv_0709,San José Guayabal,0709,state_sv_cu,17,09
+distrito_sv_0710,San Pedro Perulapán,0710,state_sv_cu,17,10
+distrito_sv_0711,San Rafael Cedros,0711,state_sv_cu,18,11
+distrito_sv_0712,San Ramón,0712,state_sv_cu,18,12
+distrito_sv_0713,Santa Cruz Analquito,0713,state_sv_cu,18,13
+distrito_sv_0714,Santa Cruz Michapa,0714,state_sv_cu,18,14
+distrito_sv_0715,Suchitoto,0715,state_sv_cu,17,15
+distrito_sv_0716,Tenancingo,0716,state_sv_cu,18,16
+distrito_sv_0801,Cuyultitán,0801,state_sv_pa,23,01
+distrito_sv_0802,El Rosario,0802,state_sv_pa,24,02
+distrito_sv_0803,Jerusalén,0803,state_sv_pa,24,03
+distrito_sv_0804,Mercedes La Ceiba,0804,state_sv_pa,24,04
+distrito_sv_0805,Olocuilta,0805,state_sv_pa,23,05
+distrito_sv_0806,Paraíso de Osorio,0806,state_sv_pa,24,06
+distrito_sv_0807,San Antonio Masahuat,0807,state_sv_pa,24,07
+distrito_sv_0808,San Emigdio,0808,state_sv_pa,24,08
+distrito_sv_0809,San Francisco Chinameca,0809,state_sv_pa,23,09
+distrito_sv_0810,San Juan Nonualco,0810,state_sv_pa,25,10
+distrito_sv_0811,San Juan Talpa,0811,state_sv_pa,23,11
+distrito_sv_0812,San Juan Tepezontes,0812,state_sv_pa,24,12
+distrito_sv_0813,San Luis Talpa,0813,state_sv_pa,23,13
+distrito_sv_0814,San Miguel Tepezontes,0814,state_sv_pa,24,14
+distrito_sv_0815,San Pedro Masahuat,0815,state_sv_pa,23,15
+distrito_sv_0816,San Pedro Nonualco,0816,state_sv_pa,24,16
+distrito_sv_0817,San Rafael Obrajuelo,0817,state_sv_pa,25,17
+distrito_sv_0818,Santa María Ostuma,0818,state_sv_pa,24,18
+distrito_sv_0819,Santiago Nonualco,0819,state_sv_pa,24,19
+distrito_sv_0820,Tapalhuaca,0820,state_sv_pa,23,20
+distrito_sv_0821,Zacatecoluca,0821,state_sv_pa,25,21
+distrito_sv_0822,San Luis La Herradura,0822,state_sv_pa,24,22
+distrito_sv_0901,Cinquera,0901,state_sv_ca,11,01
+distrito_sv_0902,Guacotecti,0902,state_sv_ca,10,02
+distrito_sv_0903,Ilobasco,0903,state_sv_ca,11,03
+distrito_sv_0904,Jutiapa,0904,state_sv_ca,11,04
+distrito_sv_0905,San Isidro,0905,state_sv_ca,10,05
+distrito_sv_0906,Sensuntepeque,0906,state_sv_ca,10,06
+distrito_sv_0907,Tejutepeque,0907,state_sv_ca,11,07
+distrito_sv_0908,Victoria,0908,state_sv_ca,10,08
+distrito_sv_0909,Dolores,0909,state_sv_ca,10,09
+distrito_sv_1001,Apastepeque,1001,state_sv_sv,14,01
+distrito_sv_1002,Guadalupe,1002,state_sv_sv,15,02
+distrito_sv_1003,San Cayetano Istepeque,1003,state_sv_sv,15,03
+distrito_sv_1004,Santa Clara,1004,state_sv_sv,14,04
+distrito_sv_1005,Santo Domingo,1005,state_sv_sv,14,05
+distrito_sv_1006,San Esteban Catarina,1006,state_sv_sv,14,06
+distrito_sv_1007,San Ildefonso,1007,state_sv_sv,14,07
+distrito_sv_1008,San Lorenzo,1008,state_sv_sv,14,08
+distrito_sv_1009,San Sebastián,1009,state_sv_sv,14,09
+distrito_sv_1010,San Vicente,1010,state_sv_sv,15,10
+distrito_sv_1011,Tecoluca,1011,state_sv_sv,15,11
+distrito_sv_1012,Tepetitán,1012,state_sv_sv,15,12
+distrito_sv_1013,Verapaz,1013,state_sv_sv,15,13
+distrito_sv_1101,Alegría,1101,state_sv_us,24,01
+distrito_sv_1102,Berlín,1102,state_sv_us,24,02
+distrito_sv_1103,California,1103,state_sv_us,25,03
+distrito_sv_1104,Concepción Batres,1104,state_sv_us,25,04
+distrito_sv_1105,El Triunfo,1105,state_sv_us,24,05
+distrito_sv_1106,Ereguayquín,1106,state_sv_us,25,06
+distrito_sv_1107,Estanzuelas,1107,state_sv_us,24,07
+distrito_sv_1108,Jiquilisco,1108,state_sv_us,26,08
+distrito_sv_1109,Jucuapa,1109,state_sv_us,24,09
+distrito_sv_1110,Jucuarán,1110,state_sv_us,25,10
+distrito_sv_1111,Mercedes Umaña,1111,state_sv_us,24,11
+distrito_sv_1112,Nueva Granada,1112,state_sv_us,24,12
+distrito_sv_1113,Ozatlán,1113,state_sv_us,25,13
+distrito_sv_1114,Puerto El Triunfo,1114,state_sv_us,26,14
+distrito_sv_1115,San Agustín,1115,state_sv_us,26,15
+distrito_sv_1116,San Buenaventura,1116,state_sv_us,24,16
+distrito_sv_1117,San Dionisio,1117,state_sv_us,25,17
+distrito_sv_1118,Santa Elena,1118,state_sv_us,25,18
+distrito_sv_1119,San Francisco Javier,1119,state_sv_us,26,19
+distrito_sv_1120,Santa María,1120,state_sv_us,25,20
+distrito_sv_1121,Santiago de María,1121,state_sv_us,24,21
+distrito_sv_1122,Tecapán,1122,state_sv_us,25,22
+distrito_sv_1123,Usulután,1123,state_sv_us,25,23
+distrito_sv_1201,Carolina,1201,state_sv_sm,21,01
+distrito_sv_1202,Ciudad Barrios,1202,state_sv_sm,21,02
+distrito_sv_1203,Comacarán,1203,state_sv_sm,22,03
+distrito_sv_1204,Chapeltique,1204,state_sv_sm,21,04
+distrito_sv_1205,Chinameca,1205,state_sv_sm,23,05
+distrito_sv_1206,Chirilagua,1206,state_sv_sm,22,06
+distrito_sv_1207,El Tránsito,1207,state_sv_sm,23,07
+distrito_sv_1208,Lolotique,1208,state_sv_sm,23,08
+distrito_sv_1209,Moncagua,1209,state_sv_sm,22,09
+distrito_sv_1210,Nueva Guadalupe,1210,state_sv_sm,23,10
+distrito_sv_1211,Nuevo Edén de San Juan,1211,state_sv_sm,21,11
+distrito_sv_1212,Quelepa,1212,state_sv_sm,22,12
+distrito_sv_1213,San Antonio del Mosco,1213,state_sv_sm,21,13
+distrito_sv_1214,San Gerardo,1214,state_sv_sm,21,14
+distrito_sv_1215,San Jorge,1215,state_sv_sm,23,15
+distrito_sv_1216,San Luis de la Reina,1216,state_sv_sm,21,16
+distrito_sv_1217,San Miguel,1217,state_sv_sm,22,17
+distrito_sv_1218,San Rafael Oriente,1218,state_sv_sm,23,18
+distrito_sv_1219,Sesori,1219,state_sv_sm,21,19
+distrito_sv_1220,Uluazapa,1220,state_sv_sm,22,20
+distrito_sv_1301,Arambala,1301,state_sv_mo,27,01
+distrito_sv_1302,Cacaopera,1302,state_sv_mo,27,02
+distrito_sv_1303,Corinto,1303,state_sv_mo,27,03
+distrito_sv_1304,Chilanga,1304,state_sv_mo,28,04
+distrito_sv_1305,Delicias de Concepción,1305,state_sv_mo,28,05
+distrito_sv_1306,El Divisadero,1306,state_sv_mo,28,06
+distrito_sv_1307,El Rosario,1307,state_sv_mo,27,07
+distrito_sv_1308,Gualococti,1308,state_sv_mo,28,08
+distrito_sv_1309,Guatajiagua,1309,state_sv_mo,28,09
+distrito_sv_1310,Joateca,1310,state_sv_mo,27,10
+distrito_sv_1311,Jocoaitique,1311,state_sv_mo,27,11
+distrito_sv_1312,Jocoro,1312,state_sv_mo,28,12
+distrito_sv_1313,Lolotiquillo,1313,state_sv_mo,28,13
+distrito_sv_1314,Meanguera,1314,state_sv_mo,27,14
+distrito_sv_1315,Osicala,1315,state_sv_mo,28,15
+distrito_sv_1316,Perquín,1316,state_sv_mo,27,16
+distrito_sv_1317,San Carlos,1317,state_sv_mo,28,17
+distrito_sv_1318,San Fernando,1318,state_sv_mo,27,18
+distrito_sv_1319,San Francisco Gotera,1319,state_sv_mo,28,19
+distrito_sv_1320,San Isidro,1320,state_sv_mo,27,20
+distrito_sv_1321,San Simón,1321,state_sv_mo,28,21
+distrito_sv_1322,Sensembra,1322,state_sv_mo,28,22
+distrito_sv_1323,Sociedad,1323,state_sv_mo,28,23
+distrito_sv_1324,Torola,1324,state_sv_mo,27,24
+distrito_sv_1325,Yamabal,1325,state_sv_mo,28,25
+distrito_sv_1326,Yoloaiquín,1326,state_sv_mo,28,26
+distrito_sv_1401,Anamorós,1401,state_sv_lu,19,01
+distrito_sv_1402,Bolívar,1402,state_sv_lu,19,02
+distrito_sv_1403,Concepción de Oriente,1403,state_sv_lu,19,03
+distrito_sv_1404,Conchagua,1404,state_sv_lu,20,04
+distrito_sv_1405,El Carmen,1405,state_sv_lu,20,05
+distrito_sv_1406,El Sauce,1406,state_sv_lu,19,06
+distrito_sv_1407,Intipucá,1407,state_sv_lu,20,07
+distrito_sv_1408,La Unión,1408,state_sv_lu,20,08
+distrito_sv_1409,Lislique,1409,state_sv_lu,19,09
+distrito_sv_1410,Meanguera del Golfo,1410,state_sv_lu,20,10
+distrito_sv_1411,Nueva Esparta,1411,state_sv_lu,19,11
+distrito_sv_1412,Pasaquina,1412,state_sv_lu,19,12
+distrito_sv_1413,Polorós,1413,state_sv_lu,19,13
+distrito_sv_1414,San Alejo,1414,state_sv_lu,20,14
+distrito_sv_1415,San José La Fuente,1415,state_sv_lu,19,15
+distrito_sv_1416,Santa Rosa de Lima,1416,state_sv_lu,19,16
+distrito_sv_1417,Yayantique,1417,state_sv_lu,20,17
+distrito_sv_1418,Yucuaiquín,1418,state_sv_lu,20,18

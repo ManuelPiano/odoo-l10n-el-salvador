@@ -142,7 +142,17 @@ class L10nSvSigner(models.AbstractModel):
         _logger.info('JWS firmado correctamente (kid=%s, alg=%s)', nit_emisor, JWS_ALGORITHM)
         return jws
 
-    def sign_and_store(self, move, dte_payload):
+    def _load_company_private_key(self, company):
+        cert_b64 = company.sudo().l10n_sv_certificate
+        if not cert_b64:
+            raise UserError(_('La compañía no tiene un certificado digital MH configurado. Suba el archivo .crt en la configuración de la compañía.'))
+        try:
+            cert_bytes = base64.b64decode(cert_b64)
+        except Exception:
+            raise UserError(_('El archivo del certificado está vacío o no se pudo leer.'))
+        return self.parse_mh_certificate(cert_bytes)
+
+    def _sign_and_store(self, move, dte_payload):
         """
         Carga la clave privada del certificado adjunto a la compañía,
         firma el DTE y almacena el JWS en el account.move.
@@ -151,16 +161,8 @@ class L10nSvSigner(models.AbstractModel):
         :param dte_payload: dict con la estructura del DTE
         :return: str JWS firmado
         """
-        self.ensure_one()
         company = move.company_id
-        if not company.l10n_sv_certificate_id:
-            raise UserError(_('La compañía no tiene un certificado digital MH configurado. Suba el archivo .crt en la configuración de la compañía.'))
-
-        cert_bytes = company.l10n_sv_certificate_id.raw
-        if not cert_bytes:
-            raise UserError(_('El archivo del certificado está vacío o no se pudo leer.'))
-
-        private_key = self.parse_mh_certificate(cert_bytes)
+        private_key = self._load_company_private_key(company)
         nit = company.l10n_sv_nit_emisor or company.l10n_sv_nit or ''
         if not nit:
             raise UserError(_('La compañía no tiene configurado un NIT para la firma (campo l10n_sv_nit_emisor o l10n_sv_nit).'))

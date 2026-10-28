@@ -81,7 +81,7 @@ class TestL10nSvSigner(L10nSvDteTestBase):
     def test_07_sign_and_store_uses_company_cert(self):
         signer = self.env['l10n_sv.signer'].sudo()
         invoice = self._create_invoice()
-        jws = signer.sign_and_store(invoice, {'fake': 'payload'})
+        jws = signer._sign_and_store(invoice, {'fake': 'payload'})
         self.assertEqual(len(jws.split('.')), 3)
 
     def _b64url_decode(self, s):

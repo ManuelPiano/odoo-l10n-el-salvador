@@ -1,19 +1,20 @@
 # Instalación de l10n_sv_dte
 
-Guía para instalar el módulo en una instancia de Odoo 19.
+Guía para instalar el módulo en una instancia de Odoo 18.
 
 ## 1. Requisitos del entorno
 
-- **Odoo**: 19.0
+- **Odoo**: 18.0
 - **PostgreSQL**: 12 o superior
 - **Python**: 3.10 o superior
 - **Dependencias Python**:
   - `requests` (HTTP)
   - `cryptography` (parseo de certificado MH + firma RSA)
+  - `jsonschema` (validación del DTE contra los esquemas oficiales del MH)
   - `qrcode` (generación de QR en formato SVG, sin necesidad de Pillow)
 
 ```bash
-pip install requests cryptography qrcode
+pip install requests cryptography qrcode jsonschema
 ```
 
 - **`wkhtmltopdf`** (opcional, recomendado): para generar PDFs del DTE
@@ -188,7 +189,7 @@ contacto:
 
 ## 9. Actualización de versión
 
-Al subir de versión (`19.0.1.3.0` → `19.0.1.4.0` etc.):
+Al subir de versión (`18.0.1.3.0` → `18.0.1.4.0` etc.):
 
 ```bash
 ./odoo-bin -c odoo.conf -u l10n_sv_dte -d <database>
