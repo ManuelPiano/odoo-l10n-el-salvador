@@ -1,4 +1,4 @@
-# AGENTS.md - l10n_sv_dte
+# CLAUDE.md - l10n_sv_dte
 
 Odoo 18 addon for El Salvador electronic invoicing (DTE) compliant with
 Ministerio de Hacienda (MH) requirements. **This is an Odoo module, not a
@@ -13,7 +13,7 @@ then views).
 | Path | Purpose |
 |------|---------|
 | `__manifest__.py` | Addon metadata, version, dependency list, load order. **Bump the version** on every change (current: `18.0.1.22.0`). |
-| `tests/` | Odoo tests (`TransactionCase`). Run with `odoo-bin --test-enable --test-tags=l10n_sv_dte`. Mock cert in `tests/common.py`. |
+| `tests/` | Odoo tests (`TransactionCase`, 103 tests). Run with `odoo-bin -d <db> -u l10n_sv_dte --test-enable --test-tags=/l10n_sv_dte --stop-after-init`. Mock cert and fixtures in `tests/common.py`. |
 | `models/__init__.py` | Imports every model. **A model file not imported here is silently not loaded** — the original `l10n_sv_api.py` was missing from this file and `self.env['l10n_sv.api']` raised at runtime. |
 | `models/account_move.py` | DTE state machine, JSON generation, JWS sign, MH send, invalidation. |
 | `models/l10n_sv_signer.py` | JWS RS512 signer + MH certificate XML parser. **AbstractModel** — not a real table. |
@@ -22,6 +22,9 @@ then views).
 | `data/*.csv` | Catalogs (CAT-008/009/012/013/015/016/019/022) and geographic data. `l10n_sv.municipio.csv` is generated from the official MH catalog (CAT-008 distritos + CAT-013 municipio per Decreto 762). **First column must be `id`** with a unique external XML-ID (e.g. `tr_sv_20`). |
 | `security/ir.model.access.csv` | ACLs. **Every new `_name = '...'` model needs a row here** or superuser-only access. |
 | `views/*.xml` | UI. Catalog views live in `l10n_sv_catalog_views.xml`. The QWeb DTE print report is in `report_l10n_sv_dte_invoice.xml`. |
+| `models/l10n_sv_dte_schema.py` | JSON Schema validator (`l10n_sv.dte.schema`, AbstractModel). |
+| `data/schemas/` | Official MH JSON Schemas (FCF v2, CCF/NC/ND v4). Never edit them by hand. |
+| `migrations/` | Upgrade scripts. Folders use series-agnostic versions (`1.17.0`, `1.21.0`). |
 | `docs/` | Functional documentation (one `.md` per topic). Mirror functional docs here, not in code comments. |
 
 ## Security: no hardcoded credentials, ever
@@ -104,14 +107,19 @@ rejected). `test_dte_schema.test_12_nc_matches_schema` guards this.
 Addresses need `l10n_sv.municipio.municipio_mh` and `distrito_mh` (2024
 territorial division); `codEstable`/`codPuntoVenta` must be `M001`/`P001` style.
 
-## What does NOT exist here
+## Verification
 
-There is no test suite, no CI, no linter, no formatter, no `pyproject.toml`,
-no `setup.py`, no `Makefile`, no pre-commit config. **All verification runs
-inside an Odoo instance** (install the addon, exercise it via UI, tail
-`odoo.log`). If you add tests, put them in `tests/` per Odoo convention and
-declare the test tag in `__manifest__.py`. If you add CI, use a matrix over
-Odoo `18.0` with a Postgres service.
+All verification runs inside an Odoo 18 instance. There is no CI, linter or
+formatter yet. Every change must end with the full suite green:
+
+```
+odoo-bin -d <db> -u l10n_sv_dte --test-enable --test-tags=/l10n_sv_dte --stop-after-init
+```
+
+The stock `odoo:18.0` image lacks `jsonschema`; build an image that adds
+`python3-jsonschema` before running tests in Docker. Never claim a change is
+done without showing the `0 failed, 0 error(s)` line. If you add CI, use a
+matrix over Odoo `18.0` with a Postgres service.
 
 ## Conventions
 
@@ -156,7 +164,12 @@ Odoo `18.0` with a Postgres service.
 | 1 | Done | Bug fixes, fields, credential migration, UUID/numeroControl auto-gen |
 | 2 | Done | Catalog models + 989 CIIU codes loaded from CSV |
 | 3 | Done | JWS signer, MH API client, contingency, invalidation |
-| 4 | Done | Complete JSON DTE: `resumen`, `documentoRelacionado`, `extension`, `pagos` |
+| 4 | Done | Complete JSON DTE: `resumen`, `documentoRelacionado`, `pagos` |
 | 5 | Done | Full DTE flow + state machine polish + wizard (log, resend, reset, batch, cron contingencia) |
 | 6 | Done | QR generation + QWeb DTE print report (PDF/HTML) |
-| 7 | Done | Test suite (5 test files, 50+ tests) + per-topic docs (`docs/instalacion.md`, `docs/catalogos.md`, `docs/api-mh.md`, `docs/flujo-dte.md`, `docs/firma-digital.md`) |
+| 7 | Done | Test suite + per-topic docs (`docs/instalacion.md`, `docs/catalogos.md`, `docs/api-mh.md`, `docs/flujo-dte.md`, `docs/firma-digital.md`) |
+| 8 | Done | Internal audit fixes: RPC-private connector, restricted certificate, grouped ACLs, protected DTE fields, multi-company, persistent error log, sealed DTE invariants |
+| 9 | Done | Sequential numeroControl (`ir.sequence`, `M001P001`), payment terms with `nb_days` |
+| 10 | Done | JSON aligned to MH schemas FCF v2, CCF/NC/ND v4 + automatic validation; IVA only in `totalIva` (validated in MH test env) |
+| 11 | Done | Official CAT-008/012/013 territorial catalog (262 distritos, 44 municipios) + reference migration; port to Odoo 18 |
+| — | Pending | NR-04, FSE-14, FEX-11 and invalidation schemas; hora de anulación en UTC; QR/report review on Odoo 18 UI |
